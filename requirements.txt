@@ -1,1 +1,7 @@
 robin_stocks
+numpy
+pandas
+matplotlib
+seaborn
+sklearn
+tensorflow
