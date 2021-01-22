@@ -2,15 +2,20 @@ import robin_stocks as r
 import time
 import threading
 from data_sourcer import DataSourcer
+from data_manager import DataManager
 from predictors.wma import Wma
+from predictors.mac_daddy import MacDaddy
 
 class NightTrader():
 
     login: dict
     predictor = None
+    predictorMacDaddy = None
     dataSourcer: DataSourcer
     bought = (False, 0.0)
+    boughtMacDaddy = (False, 0.0)
     sumwin = 0
+    sumwinMacDaddy = 0
 
     def __init__(self):
         print("---------------------------------- Night Trader ----------------------------------")
@@ -29,11 +34,12 @@ class NightTrader():
             exit()
         print("done")
 
-
-        self.dataSourcer = DataSourcer(r)
+        # Initialize and execute the data sourcer, it's a singleton
+        self.dataSourcer = DataSourcer.getInstance()
         self.dataSourcer.run(r)
 
-        self.predictor = Wma(self.dataSourcer)        
+        self.predictor = Wma(self.dataSourcer)
+        self.predictorMacDaddy = MacDaddy(self.dataSourcer)
 
     def logout(self):
         # print(r.crypto.get_crypto_positions())
@@ -43,19 +49,29 @@ class NightTrader():
     def run(self):
         # self.data_source.printPriceHistory()
         # if len(self.data_source.getData()) > 15:
-        slope = self.predictor.predict()
-        current_price = self.dataSourcer.justGetMostRecentPrice()
-        if slope > 0.005 and not self.bought[0]:
-            self.bought = (True, current_price)
-            print("bought at", current_price)
-
-        # sell if going down or have lost $10 already
-        if (slope < -0.001 and self.bought[0]) or (self.bought[1] - current_price > 10):
-            profit = float(current_price) - float(self.bought[1])
-            print("Selling at",current_price, " for Profit: ", profit)
-            self.sumwin = self.sumwin + current_price - self.bought[1]
-            self.bought = (False, 0)
-            print("Total profit:", self.sumwin)
+        action = self.predictor.predict()
+        if action:
+            current_price = self.dataSourcer.justGetMostRecentPrice()
+            if action == "buy" and not self.bought[0]:
+                self.bought = (True, current_price)
+                print("WMA buy")
+            elif action == "sell" and self.bought[0]:
+                profit = float(current_price) - float(self.bought[1], )
+                self.sumwin = self.sumwin + current_price - self.bought[1]
+                print("WMA: Bought at:", float(self.bought[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwin, end="")
+                self.bought = (False, 0)
+        
+        action = self.predictorMacDaddy.predict()
+        if action:
+            current_price = self.dataSourcer.justGetMostRecentPrice()
+            if action == "buy" and not self.boughtMacDaddy[0]:
+                self.boughtMacDaddy = (True, current_price)
+                print("MD buy")
+            elif action == "sell" and self.boughtMacDaddy[0]:
+                profit = float(current_price) - float(self.boughtMacDaddy[1], )
+                self.sumwinMacDaddy = self.sumwinMacDaddy + current_price - self.boughtMacDaddy[1]
+                print("MacDaddy: Bought at:", float(self.boughtMacDaddy[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwinMacDaddy, end="")
+                self.boughtMacDaddy = (False, 0)
 
 
 if __name__ == "__main__":

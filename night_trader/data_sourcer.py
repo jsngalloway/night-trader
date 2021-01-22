@@ -2,6 +2,8 @@ import csv
 import pandas as pd
 import threading
 
+from robin_stocks.urls import quotes
+
 
 class DataSourcer:
 
@@ -9,52 +11,43 @@ class DataSourcer:
 
     eth_history = {}
     quotes = pd.DataFrame(columns=['time', 'price'])
-    last_get_index = 0
 
-    def __init__(self, r):
-        # self.login = r
-        # self.eth_history = self.getHistory(self.CRYPTO, r)
-        # if not self.eth_history:
-        #     print("no history, exiting")
-        #     exit()
-        
-        # with open('test.csv', 'w', encoding='utf8', newline='') as output_file:
-        #     fc = csv.DictWriter(output_file, fieldnames=self.eth_history[0].keys())
-        #     fc.writeheader()
-        #     fc.writerows(self.eth_history)
-        # return
-        pass
+    __instance = None
+    @staticmethod 
+    def getInstance():
+        """ Static access method. """
+        if DataSourcer.__instance == None:
+            DataSourcer()
+        return DataSourcer.__instance
 
-    # def getHistory(self, crypto_symbol, r) -> list:
-    #     print("Gathering historical data...", end='')
-    #     history_list = r.crypto.get_crypto_historicals(crypto_symbol, interval='5minute', span='week', bounds='24_7', info=None) #TODO change to 15second
-
-    #     if not history_list:
-    #         print("Error in loading history data, system exiting.")
-    #         return []
-    #     else:
-    #         print("done")
-    #         return history_list
+    def __init__(self):
+        """ Virtually private constructor. """
+        if DataSourcer.__instance != None:
+            raise Exception("There can only be one DataSourcer, use getInstance!")
+        else:
+            DataSourcer.__instance = self
 
     def pullNewPrice(self, r):
         new_data_point = {'time': pd.Timestamp.now(), 'price':float(r.crypto.get_crypto_quote(self.CRYPTO, info='mark_price'))}
         self.quotes = self.quotes.append(new_data_point, ignore_index=True)
-        print("ETH:", new_data_point['price'])
 
-    def getNewQuotes(self) -> pd.DataFrame:
-        to_return = self.quotes[self.last_get_index:]
-        self.last_get_index = len(self.quotes)
-        return to_return
-
-    def isNewQuotes(self) -> bool:
-        return len(self.quotes) > self.last_get_index
+    def getFromIndex(self, index: int) -> tuple:
+        """returns a list from the requested index to the last index and the newest last index"""
+        return (list(self.quotes['price'][index:]), len(self.quotes))
 
     def run(self, r):
         self.pullNewPrice(r)
+        if (len(self.quotes) % 100 == 0):
+            self.saveQuotesToCsv("MorningTest2")
         threading.Timer(1.0, self.run, [r]).start()
     
     def justGetMostRecentPrice(self) -> float:
         return self.quotes['price'].iloc[-1]
+
+    def saveQuotesToCsv(self, name_of_file: str):
+        path = name_of_file + ".csv"
+        self.quotes.to_csv(path, index = False, header=True)
+
         
 
 
