@@ -13,18 +13,22 @@ class MacDaddy():
 
     def __init__(self, dataSourcer):
         self.dataManager = DataManager(dataSourcer, 200)
-        while (len(self.dataManager.get()) < 30):
+        while (len(self.dataManager.get()[1]) < 30):
             time.sleep(1)
-            print('MAC Daddie Loading: gathered ' + str(len(self.dataManager.get())) + '/30 prices')
+            print('MAC Daddie Loading: gathered ' + str(len(self.dataManager.get()[1])) + '/30 prices')
 
 
     def predict(self):
         
-        prices = pd.DataFrame(self.dataManager.get())
-        exp1 = prices.ewm(span=12, adjust=False).mean()
-        exp2 = prices.ewm(span=26, adjust=False).mean()
+        is_new, price_list = self.dataManager.get()
+        if not is_new:
+            return None
+        prices = pd.DataFrame(price_list)
+
+        exp1 = prices.ewm(span=5, adjust=False).mean() #12
+        exp2 = prices.ewm(span=15, adjust=False).mean() #26
         macd = exp1 - exp2
-        signal = macd.ewm(span=9, adjust=False).mean()
+        signal = macd.ewm(span=2, adjust=False).mean() #9
 
         if ((macd.iat[-1, 0] > signal.iat[-1, 0]) and (macd.iat[-2, 0] <= signal.iat[-2, 0])):
             return "buy"

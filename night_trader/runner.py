@@ -54,11 +54,10 @@ class NightTrader():
             current_price = self.dataSourcer.justGetMostRecentPrice()
             if action == "buy" and not self.bought[0]:
                 self.bought = (True, current_price)
-                print("WMA buy")
             elif action == "sell" and self.bought[0]:
                 profit = float(current_price) - float(self.bought[1], )
                 self.sumwin = self.sumwin + current_price - self.bought[1]
-                print("WMA: Bought at:", float(self.bought[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwin, end="")
+                print("WMA: Bought at:", float(self.bought[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwin)
                 self.bought = (False, 0)
         
         action = self.predictorMacDaddy.predict()
@@ -66,11 +65,10 @@ class NightTrader():
             current_price = self.dataSourcer.justGetMostRecentPrice()
             if action == "buy" and not self.boughtMacDaddy[0]:
                 self.boughtMacDaddy = (True, current_price)
-                print("MD buy")
             elif action == "sell" and self.boughtMacDaddy[0]:
                 profit = float(current_price) - float(self.boughtMacDaddy[1], )
                 self.sumwinMacDaddy = self.sumwinMacDaddy + current_price - self.boughtMacDaddy[1]
-                print("MacDaddy: Bought at:", float(self.boughtMacDaddy[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwinMacDaddy, end="")
+                print("MacDaddy: Bought at:", float(self.boughtMacDaddy[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwinMacDaddy)
                 self.boughtMacDaddy = (False, 0)
 
 
@@ -79,5 +77,5 @@ if __name__ == "__main__":
     nt = NightTrader()
     while(True):
         nt.run()
-        time.sleep(5)
+        time.sleep(0.02)
     nt.logout()

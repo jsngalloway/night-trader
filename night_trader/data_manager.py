@@ -12,7 +12,11 @@ class DataManager:
         self.dataSourcer = dataSourcer
         self.data = deque(maxlen=needed_points)
 
-    def get(self) -> list:
-        new_data, self.next_index = self.dataSourcer.getFromIndex(self.next_index)
-        self.data.extend(new_data)
-        return list(self.data)
+    def get(self) -> tuple:
+        new_data, new_index = self.dataSourcer.getFromIndex(self.next_index)
+        if(new_index == self.next_index):
+            return (False, list(self.data))
+        else:
+            self.next_index = new_index
+            self.data.extend(new_data)
+            return (True, list(self.data))

@@ -15,13 +15,16 @@ class Wma():
 
     def __init__(self, dataSourcer):
         self.dataManager = DataManager(dataSourcer, 25)
-        while (len(self.dataManager.get()) < 25):
+        while (len(self.dataManager.get()[1]) < 25):
             time.sleep(1)
-            print('WMA Loading: gathered ' + str(len(self.dataManager.get())) + '/25 prices')
+            print('WMA Loading: gathered ' + str(len(self.dataManager.get()[1])) + '/25 prices')
 
 
     def predict(self):
-        prices = pd.DataFrame(self.dataManager.get())
+        is_new, price_list = self.dataManager.get()
+        if not is_new:
+            return None
+        prices = pd.DataFrame(price_list)
 
         ewa = prices.ewm(span=20, adjust=True).mean()
         slope = ewa.diff()
