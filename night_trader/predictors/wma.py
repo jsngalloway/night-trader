@@ -14,10 +14,10 @@ class Wma():
     dataManager: DataManager
 
     def __init__(self, dataSourcer):
-        self.dataManager = DataManager(dataSourcer, 25)
-        while (len(self.dataManager.get()[1]) < 25):
+        self.dataManager = DataManager(dataSourcer, 20)
+        while (len(self.dataManager.get()[1]) < 20):
             time.sleep(1)
-            print('WMA Loading: gathered ' + str(len(self.dataManager.get()[1])) + '/25 prices')
+            print('WMA Loading: gathered ' + str(len(self.dataManager.get()[1])) + '/20 prices')
 
 
     def predict(self):
@@ -31,9 +31,9 @@ class Wma():
         slope_array = np.array(slope)
         last_slope = slope_array[-1]
 
-        if last_slope > 0.005:
+        if last_slope > 0.007: #.005
             return "buy"
-        elif (last_slope < -0.001):
+        elif (last_slope < -0.0015): #-.001
             return "sell"
         else:
             return None

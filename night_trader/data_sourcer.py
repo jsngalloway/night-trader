@@ -28,7 +28,8 @@ class DataSourcer:
             DataSourcer.__instance = self
 
     def pullNewPrice(self, r):
-        new_data_point = {'time': pd.Timestamp.now(), 'price':float(r.crypto.get_crypto_quote(self.CRYPTO, info='mark_price'))}
+        query_result = r.crypto.get_crypto_quote(self.CRYPTO, info=None)
+        new_data_point = {'time': pd.Timestamp.now(), 'price':float(query_result["mark_price"])}
         self.quotes = self.quotes.append(new_data_point, ignore_index=True)
 
     def getFromIndex(self, index: int) -> tuple:
