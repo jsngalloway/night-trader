@@ -85,6 +85,6 @@ if __name__ == "__main__":
     # execute only if run as a script
     nt = NightTrader()
     while(True):
-        nt.run()
+        # nt.run()
         time.sleep(0.02)
     nt.logout()

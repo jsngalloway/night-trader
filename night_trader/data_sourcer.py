@@ -28,9 +28,13 @@ class DataSourcer:
             DataSourcer.__instance = self
 
     def pullNewPrice(self, r):
-        query_result = r.crypto.get_crypto_quote(self.CRYPTO, info=None)
-        new_data_point = {'time': pd.Timestamp.now(), 'price':float(query_result["mark_price"])}
-        self.quotes = self.quotes.append(new_data_point, ignore_index=True)
+        try:
+            query_result = r.crypto.get_crypto_quote(self.CRYPTO, info=None)
+        except:
+            print("Failed to log")
+        else:
+            new_data_point = {'time': pd.Timestamp.now(), 'price':float(query_result["mark_price"])}
+            self.quotes = self.quotes.append(new_data_point, ignore_index=True)
 
     def getFromIndex(self, index: int) -> tuple:
         """returns a list from the requested index to the last index and the newest last index"""
