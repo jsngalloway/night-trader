@@ -23,9 +23,16 @@ def buyAndWait(r):
             # cancel order
             print(f"[{datetime.now().strftime('%H:%M:%S')}] cancelling...", end="")
             r.orders.cancel_crypto_order(id)
-            while(r.orders.get_crypto_order_info(id)["state"] != 'cancelled'):
-                time.sleep(50/1000) #wait until the order is confirmed cancelled
-            print(f"Cancelled [{datetime.now().strftime('%H:%M:%S')}]")
+            order_info = r.orders.get_crypto_order_info(id)
+            while(order_info['state'] != 'canceled'):
+                order_info = r.orders.get_crypto_order_info(id)
+                if order_info['state'] == 'filled':
+                    print(f"cancel failed: bought [{datetime.now().strftime('%H:%M:%S')}] (Exec: ${round(float(order_info['average_price']), 2)})")
+                    cleared = True
+                    return (True, float(order_info['average_price']))
+
+                time.sleep(50/1000) #wait until the order is confirmed canceled
+            print(f"canceled [{datetime.now().strftime('%H:%M:%S')}]")
             return (False, 0)
 
         time.sleep(50/1000) # sleep 50ms
@@ -54,9 +61,15 @@ def sellAndWait(r):
             # cancel order
             print(f"[{datetime.now().strftime('%H:%M:%S')}] cancelling...", end="")
             r.orders.cancel_crypto_order(id)
-            while(r.orders.get_crypto_order_info(id)["state"] != 'cancelled'):
-                time.sleep(50/1000) #wait until the order is confirmed cancelled
-            print(f"cancelled [{datetime.now().strftime('%H:%M:%S')}].")
+            order_info = r.orders.get_crypto_order_info(id)
+            while(order_info['state'] != 'canceled'):
+                order_info = r.orders.get_crypto_order_info(id)
+                if order_info['state'] == 'filled':
+                    print(f"cancel failed: sold [{datetime.now().strftime('%H:%M:%S')}] (Exec: ${round(float(order_info['average_price']), 2)})")
+                    cleared = True
+                    return (True, float(order_info['average_price']))
+                time.sleep(50/1000) #wait until the order is confirmed canceled
+            print(f"canceled [{datetime.now().strftime('%H:%M:%S')}].")
             return (False, 0)
 
         time.sleep(50/1000) # sleep 50ms
