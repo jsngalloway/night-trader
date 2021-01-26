@@ -5,12 +5,12 @@ import tensorflow as tf
 from tensorflow.keras import layers, optimizers
 from sklearn.preprocessing import MinMaxScaler
 
-def scaleData(paths_to_datasets: List[str]) -> Tuple[List[pd.DataFrame], MinMaxScaler]:
+def scaleData(paths_to_datasets: List[str], sub_sampling) -> Tuple[List[pd.DataFrame], MinMaxScaler]:
     scaler = MinMaxScaler()
     datasets = []
     for path in paths_to_datasets:
         # perform partial fits on all datasets
-        datasets.append(pd.read_csv(path)[['price']])
+        datasets.append(pd.read_csv(path)[['price']][::sub_sampling])
         scaler = scaler.partial_fit(datasets[-1])
     for i in range(len(datasets)):
         # once all partial fits have been performed, transform every file
@@ -23,8 +23,7 @@ def createNewModel(lookback_length) -> tf.keras.Model:
   model.add(layers.LSTM(units=32, return_sequences=True, dropout=0.2))
   model.add(layers.LSTM(units=32, dropout=0.2))
   model.add(layers.Dense(units=1))
-  optimizer = optimizers.Adam()
-  model.compile(optimizer=optimizer, loss='mean_squared_error')
+  model.compile(optimizer='adam', loss='mean_squared_error')
   return model
 
 def preprocessData(data: pd.DataFrame, length) -> Tuple[np.ndarray, np.ndarray]:
@@ -47,7 +46,7 @@ def preprocessData(data: pd.DataFrame, length) -> Tuple[np.ndarray, np.ndarray]:
 
     return(hist, target)
 
-def trainModel(datasets, length, model) -> tf.keras.Model:
+def trainModel(datasets, length, model: tf.keras.Model) -> tf.keras.Model:
     for dataset in datasets:
         X_train, y_train = preprocessData(dataset, length)
 
@@ -56,11 +55,10 @@ def trainModel(datasets, length, model) -> tf.keras.Model:
 
     return model
 
-def createLstmModelFromDatasets(paths_to_datasets) -> tf.keras.Model:
-  LENGTH = 90
+def createLstmModelFromDatasets(paths_to_datasets, lookback_length=90, sub_sampling=1) -> tf.keras.Model:
 
-  datasets, scaler = scaleData(paths_to_datasets)
+  datasets, scaler = scaleData(paths_to_datasets, sub_sampling)
   
-  model = createNewModel(LENGTH)
-  model = trainModel(datasets, LENGTH, model)
+  model = createNewModel(lookback_length)
+  model = trainModel(datasets, lookback_length, model)
   return model
