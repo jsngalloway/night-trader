@@ -4,6 +4,7 @@ import threading
 from data_sourcer import DataSourcer
 from data_manager import DataManager
 from predictors.wma import Wma
+from predictors.lstm_predictor import Lstm
 from predictors.mac_daddy import MacDaddy
 from trader import buyAndWait, sellAndWait
 
@@ -38,14 +39,19 @@ class NightTrader():
 
         buying_power = r.profiles.load_account_profile(info="crypto_buying_power")
         print("Crypto Buying Power: ", buying_power)
+        # print(r.get_crypto_historicals(symbol='ETH', interval='15second', span='hour', info="begins_at, open_price"))
+
 
         # Initialize and execute the data sourcer, it's a singleton
         self.dataSourcer = DataSourcer.getInstance()
         self.dataSourcer.run(r)
 
+        self.predictor = Lstm(self.dataSourcer)
+
         # self.predictor = Wma(self.dataSourcer)
-        self.predictor = MacDaddy(self.dataSourcer)
+        # self.predictor = MacDaddy(self.dataSourcer)
         # self.predictorMacDaddy = MacDaddy(self.dataSourcer)
+
 
     def logout(self):
         # print(r.crypto.get_crypto_positions())
@@ -86,5 +92,5 @@ if __name__ == "__main__":
     nt = NightTrader()
     while(True):
         # nt.run()
-        time.sleep(0.02)
+        time.sleep(2)
     nt.logout()
