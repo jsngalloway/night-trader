@@ -7,17 +7,23 @@ from predictors.wma import Wma
 from predictors.lstm_predictor import Lstm
 from predictors.mac_daddy import MacDaddy
 from trader import buyAndWait, sellAndWait
+from predictors.lstm.lstm_data_manager import LstmDataManager
+from tqdm import tqdm
 
 class NightTrader():
 
     login: dict
     predictor = None
-    predictorMacDaddy = None
-    dataSourcer: DataSourcer
+    # predictorMacDaddy = None
+    # dataSourcer: DataSourcer
     bought = (False, 0.0)
-    boughtMacDaddy = (False, 0.0)
+    # boughtMacDaddy = (False, 0.0)
     sumwin = 0
-    sumwinMacDaddy = 0
+    # sumwinMacDaddy = 0
+    CRYPTO = "ETH"
+    dataManager: LstmDataManager
+
+    run_count = 0
 
     def __init__(self):
         print("---------------------------------- Night Trader ----------------------------------")
@@ -37,21 +43,12 @@ class NightTrader():
         print("done")
 
 
-        buying_power = r.profiles.load_account_profile(info="crypto_buying_power")
-        print("Crypto Buying Power: ", buying_power)
-        # print(r.get_crypto_historicals(symbol='ETH', interval='15second', span='hour', info="begins_at, open_price"))
+        # buying_power = r.profiles.load_account_profile(info="crypto_buying_power")
+        # print("Crypto Buying Power: ", buying_power)
 
-
-        # Initialize and execute the data sourcer, it's a singleton
-        self.dataSourcer = DataSourcer.getInstance()
-        self.dataSourcer.run(r)
-
-        self.predictor = Lstm(self.dataSourcer)
-
-        # self.predictor = Wma(self.dataSourcer)
-        # self.predictor = MacDaddy(self.dataSourcer)
-        # self.predictorMacDaddy = MacDaddy(self.dataSourcer)
-
+        self.dataManager = LstmDataManager()
+        self.predictor = Lstm(self.dataManager)
+        self.dataManager.updateBulk()
 
     def logout(self):
         # print(r.crypto.get_crypto_positions())
@@ -59,38 +56,51 @@ class NightTrader():
         r.authentication.logout()
     
     def run(self):
-        # self.data_source.printPriceHistory()
-        # if len(self.data_source.getData()) > 15:
-        action = self.predictor.predict()
-        if action:
-            current_price = self.dataSourcer.justGetMostRecentPrice()
-            if action == "buy" and not self.bought[0]:
-                self.bought = buyAndWait(r)
-            elif action == "sell" and self.bought[0]:
-                sell_success, sell_price = sellAndWait(r)
+        self.run_count = self.run_count + 1
+
+        latest_data = self.updateDataManager()
+
+        if (self.run_count % 4 == 0):
+            self.run_predictor(latest_data)
+    
+    def updateDataManager(self) -> dict:
+        data = self.dataManager.getQuoteAndAddToData()
+        return data
+
+    def run_predictor(self, latest_data: dict):
+        current_price = float(latest_data["mark_price"])
+        buyable_price = float(latest_data["ask_price"])
+        sellable_price = float(latest_data["bid_price"])
+
+        action = self.predictor.predict(current_price)
+
+        if action == "buy":
+            if not self.bought[0]:
+                # self.bought = buyAndWait(r)
+                self.bought = (True, buyable_price)
+            else:
+                # have already bought: hold
+                return
+        else:
+            if self.bought[0]:
+                # we have bought and now we should sell
+                # sell_success, sell_price = sellAndWait(r)
+                sell_success = True
+                sell_price = sellable_price
                 if sell_success:
-                    profit = float(sell_price) - float(self.bought[1], )
+                    profit = sell_price - self.bought[1]
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    print("Mac: Bought at:", float(self.bought[1]), "Selling at",sell_price, " for Profit: ", profit, " TOTAL: ", self.sumwin)
+                    print("LSTM: Bought at:", self.bought[1], "Selling at",sell_price, "for Profit:", profit, "TOTAL:", self.sumwin, flush=True)
                     self.bought = (False, 0)
-                    print("Crypto Buying Power: ", r.profiles.load_account_profile(info="crypto_buying_power"))
-        
-        # action = self.predictorMacDaddy.predict()
-        # if action:
-        #     current_price = self.dataSourcer.justGetMostRecentPrice()
-        #     if action == "buy" and not self.boughtMacDaddy[0]:
-        #         self.boughtMacDaddy = (True, current_price)
-        #     elif action == "sell" and self.boughtMacDaddy[0]:
-        #         profit = float(current_price) - float(self.boughtMacDaddy[1], )
-        #         self.sumwinMacDaddy = self.sumwinMacDaddy + current_price - self.boughtMacDaddy[1]
-        #         print("MacDaddy: Bought at:", float(self.boughtMacDaddy[1]), "Selling at",current_price, " for Profit: ", profit, " TOTAL: ", self.sumwinMacDaddy)
-        #         self.boughtMacDaddy = (False, 0)
+            else:
+                return
 
 
 if __name__ == "__main__":
     # execute only if run as a script
     nt = NightTrader()
     while(True):
-        # nt.run()
-        time.sleep(2)
+        nt.run()
+        time.sleep(15)
+
     nt.logout()

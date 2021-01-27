@@ -24,7 +24,9 @@ def predict_next(model: tf.keras.Model, recent_data: pd.DataFrame):
   # 6. Un-normalize the data
   result = scaler.inverse_transform(prediction)
 
-  print(f"${result[0][0]}")
+  # print(f"${result[0][0]}")
+
+  return result[0][0]
 
 def load_x_from_file(path: str, x: int):
   df = pd.read_csv(path)[['price']]
