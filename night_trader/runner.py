@@ -25,7 +25,7 @@ class NightTrader:
     dataManager: LstmDataManager
 
     run_count = 0
-    model_interval = 3 # 3*15 seconds between samples
+    model_interval = 3  # 3*15 seconds between samples
 
     def __init__(self):
         print(

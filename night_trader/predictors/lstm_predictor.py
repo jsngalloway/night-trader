@@ -34,7 +34,6 @@ class Lstm:
 
         self.model_lookback_length = self.model.input_shape[1]
 
-
         # print("Creating model...")
         # paths = ["data/MorningTest.csv", "data/MorningTest5.csv", "data/MorningTest6.csv", "data/MorningTest10.csv"]
         # self.model = createLstmModelFromDatasets(paths, lookback_length=90, sub_sampling=60)
