@@ -25,6 +25,7 @@ class NightTrader:
     dataManager: LstmDataManager
 
     run_count = 0
+    model_interval = 3 # 3*15 seconds between samples
 
     def __init__(self):
         print(
@@ -62,7 +63,7 @@ class NightTrader:
 
         latest_data = self.updateDataManager()
 
-        if self.run_count % 4 == 0:
+        if self.run_count % self.model_interval == 0:
             self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:

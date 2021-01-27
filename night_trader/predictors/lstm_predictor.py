@@ -18,12 +18,13 @@ class Lstm:
     last_predicted_value: int
 
     # Lookback length: determined on creation of model: how many previous points we'll reference for each prediction
-    model_lookback_length = 90
+    model_lookback_length = 20
 
     # Model Subsampling: data is recorded every 15 seconds, what interval of those should be samples (e.g. 4 = one point per minute)
-    model_subsampling = 4
+    model_interval: int
 
-    def __init__(self, dataManager):
+    def __init__(self, dataManager, model_interval):
+        self.model_interval = model_interval
         self.dataManager = dataManager
 
         path_to_model = "models/dump_model_1"
@@ -37,13 +38,13 @@ class Lstm:
         # print("Model successfully created.")
 
         data = self.dataManager.getData(
-            tail=self.model_lookback_length, subsampling=self.model_subsampling
+            tail=self.model_lookback_length, subsampling=self.model_interval
         )
         self.last_predicted_value = predict_next(self.model, data)
 
     def predict(self, current_price):
         data = self.dataManager.getData(
-            tail=self.model_lookback_length, subsampling=self.model_subsampling
+            tail=self.model_lookback_length, subsampling=self.model_interval
         )
         next_value = predict_next(self.model, data)
 
