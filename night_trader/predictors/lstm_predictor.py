@@ -19,7 +19,7 @@ class Lstm():
     def __init__(self, dataManager):
         self.dataManager = dataManager
 
-        path_to_model = "models/dump_model1"
+        path_to_model = "models/dump_model_1"
         print("Loading model from file...", end="")
         self.model = tf.keras.models.load_model(path_to_model)
         print("done.", flush=True)
