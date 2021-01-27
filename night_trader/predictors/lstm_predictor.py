@@ -37,10 +37,10 @@ class Lstm():
         current_projected_error = round(abs(current_value - self.last_predicted_value)/current_value*100, 4)
         action = None
 
-        if ((next_value - self.last_predicted_value) > 0.5):
+        if ((next_value - self.last_predicted_value) > 1.0):
             action = "buy"
 
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] Current: {current_value:.2f} Projected: {self.last_predicted_value:.2f} (Error: {current_projected_error}%) Next: {next_value:.2f} ({next_value-self.last_predicted_value:+.2f}) Action: {action}", flush=True)
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Current: ${current_value:.2f} Projected: ${self.last_predicted_value:.2f} (Error: {current_projected_error}%) Next: ${next_value:.2f} (${next_value-self.last_predicted_value:+.2f}) Action: {action}", flush=True)
         self.last_predicted_value = next_value
         return action
 
