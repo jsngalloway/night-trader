@@ -1,6 +1,7 @@
 from data_sourcer import DataSourcer
 from collections import deque
 
+
 class DataManager:
 
     dataSourcer = None
@@ -14,7 +15,7 @@ class DataManager:
 
     def get(self) -> tuple:
         new_data, new_index = self.dataSourcer.getFromIndex(self.next_index)
-        if(new_index == self.next_index):
+        if new_index == self.next_index:
             return (False, list(self.data))
         else:
             self.next_index = new_index

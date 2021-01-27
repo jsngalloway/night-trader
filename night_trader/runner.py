@@ -10,7 +10,8 @@ from trader import buyAndWait, sellAndWait
 from predictors.lstm.lstm_data_manager import LstmDataManager
 from tqdm import tqdm
 
-class NightTrader():
+
+class NightTrader:
 
     login: dict
     predictor = None
@@ -26,14 +27,16 @@ class NightTrader():
     run_count = 0
 
     def __init__(self):
-        print("---------------------------------- Night Trader ----------------------------------")
+        print(
+            "---------------------------------- Night Trader ----------------------------------"
+        )
         # Load and read username and password env files
         usernameFile = open("env/username", "r")
         username = usernameFile.read()
         passwordFile = open("env/password", "r")
         password = passwordFile.read()
 
-        print("Logging in...", end='')
+        print("Logging in...", end="")
         self.login = r.login(username, password)
         if not self.login["access_token"]:
             print("FAILURE")
@@ -41,7 +44,6 @@ class NightTrader():
             r.authentication.logout()
             exit()
         print("done")
-
 
         # buying_power = r.profiles.load_account_profile(info="crypto_buying_power")
         # print("Crypto Buying Power: ", buying_power)
@@ -54,15 +56,15 @@ class NightTrader():
         # print(r.crypto.get_crypto_positions())
         # log out of robinhood at the end of the session
         r.authentication.logout()
-    
+
     def run(self):
         self.run_count = self.run_count + 1
 
         latest_data = self.updateDataManager()
 
-        if (self.run_count % 4 == 0):
+        if self.run_count % 4 == 0:
             self.run_predictor(latest_data)
-    
+
     def updateDataManager(self) -> dict:
         data = self.dataManager.getQuoteAndAddToData()
         return data
@@ -90,7 +92,17 @@ class NightTrader():
                 if sell_success:
                     profit = sell_price - self.bought[1]
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    print("LSTM: Bought at:", self.bought[1], "Selling at",sell_price, "for Profit:", profit, "TOTAL:", self.sumwin, flush=True)
+                    print(
+                        "LSTM: Bought at:",
+                        self.bought[1],
+                        "Selling at",
+                        sell_price,
+                        "for Profit:",
+                        profit,
+                        "TOTAL:",
+                        self.sumwin,
+                        flush=True,
+                    )
                     self.bought = (False, 0)
             else:
                 return
@@ -99,7 +111,7 @@ class NightTrader():
 if __name__ == "__main__":
     # execute only if run as a script
     nt = NightTrader()
-    while(True):
+    while True:
         nt.run()
         time.sleep(15)
 
