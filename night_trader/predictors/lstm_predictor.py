@@ -18,7 +18,7 @@ class Lstm:
     last_predicted_value: int
 
     # Lookback length: determined on creation of model: how many previous points we'll reference for each prediction
-    model_lookback_length = 20
+    model_lookback_length: int
 
     # Model Subsampling: data is recorded every 15 seconds, what interval of those should be samples (e.g. 4 = one point per minute)
     model_interval: int
@@ -31,6 +31,9 @@ class Lstm:
         print("Loading model from file...", end="")
         self.model = tf.keras.models.load_model(path_to_model)
         print("done.", flush=True)
+
+        self.model_lookback_length = self.model.input_shape[1]
+
 
         # print("Creating model...")
         # paths = ["data/MorningTest.csv", "data/MorningTest5.csv", "data/MorningTest6.csv", "data/MorningTest10.csv"]
@@ -55,7 +58,7 @@ class Lstm:
         )
         action = None
 
-        if (next_value - self.last_predicted_value) > 1.0:
+        if (next_value - self.last_predicted_value) > 1.75:
             action = "buy"
 
         print(

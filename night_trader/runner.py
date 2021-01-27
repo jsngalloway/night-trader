@@ -50,7 +50,7 @@ class NightTrader:
         # print("Crypto Buying Power: ", buying_power)
 
         self.dataManager = LstmDataManager()
-        self.predictor = Lstm(self.dataManager)
+        self.predictor = Lstm(self.dataManager, self.model_interval)
         self.dataManager.updateBulk()
 
     def logout(self):
