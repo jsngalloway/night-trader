@@ -34,9 +34,12 @@ class LstmDataManager:
 
         # it comes in as a string, so convert to numbers
         df["price"] = pd.to_numeric(df["price"])
-
+        print(f"Loaded: {len(current_list)} rows from file")
+        print(f"Got: {len(df)} rows from the api just now")
         sum_data = pd.concat([current_list, df])
+        print(f"Appended to get: {len(sum_data)} rows")
         sum_data = sum_data[~sum_data[["time"]].duplicated(keep="first")]
+        print(f"Removing dupes got us: {len(sum_data)} rows")
         return sum_data
 
     def updateBulk(self):
@@ -60,5 +63,5 @@ class LstmDataManager:
         )
         return new_data_dict
 
-    def getData(self, tail=90, subsampling=4):
+    def getData(self, tail, subsampling):
         return (self.data[["price"]][::subsampling]).tail(tail)

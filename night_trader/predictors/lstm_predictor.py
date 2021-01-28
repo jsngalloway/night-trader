@@ -15,9 +15,9 @@ class Lstm:
     dataManager: LstmDataManager
     model: tf.keras.Model
     points_needed: int
-    last_value: float
-    last_predicted_value: float
-    last_last_predicted_value: float
+    last_value: float = None
+    last_predicted_value: float = None
+    last_last_predicted_value: float = None
 
     # Lookback length: determined on creation of model: how many previous points we'll reference for each prediction
     model_lookback_length: int
@@ -41,12 +41,12 @@ class Lstm:
         # self.model = createLstmModelFromDatasets(paths, lookback_length=90, sub_sampling=60)
         # print("Model successfully created.")
 
-        data = self.dataManager.getData(
-            tail=self.model_lookback_length, subsampling=self.model_interval
-        )
-        self.last_predicted_value = predict_next(self.model, data)
-        self.last_last_predicted_value = self.last_predicted_value
-        self.last_value = self.last_predicted_value
+        # data = self.dataManager.getData(
+        #     tail=self.model_lookback_length, subsampling=self.model_interval
+        # )
+        # self.last_predicted_value = predict_next(self.model, data)
+        # self.last_last_predicted_value = self.last_predicted_value
+        # self.last_value = None
 
     def predict(self, current_price):
         data = self.dataManager.getData(
@@ -56,14 +56,22 @@ class Lstm:
 
         current_value = current_price
 
-        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / (current_value - self.last_value) * 100
+        # The first time it's run we're not ready to make a prediction
+        if not self.last_predicted_value:
+            print("Preparing to predict")
+            self.last_predicted_value = next_value
+            self.last_last_predicted_value = next_value
+            self.last_value = current_value
+            return None
+
+        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / abs(current_value - self.last_value) * 100
         action = None
 
         if (next_value - self.last_predicted_value) > 1.5:
             action = "buy"
 
         print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] Real: [Last: ${self.last_value:.2f} Current: ${current_value:.2f}] Model: [Last: ${self.last_last_predicted_value:.2f} Current: {self.last_predicted_value:.2f} Next: ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] (Current error: {current_projected_error: 4.0f}%) Action: {action}",
+            f"[{datetime.now().strftime('%H:%M:%S')}] Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}",
             flush=True,
         )
         self.last_value = current_value
