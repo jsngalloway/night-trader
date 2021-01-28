@@ -56,7 +56,14 @@ class Lstm:
 
         current_value = current_price
 
-        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / (current_value - self.last_value) * 100
+        current_projected_error = (
+            abs(
+                (current_value - self.last_value)
+                - (self.last_predicted_value - self.last_last_predicted_value)
+            )
+            / (current_value - self.last_value)
+            * 100
+        )
         action = None
 
         if (next_value - self.last_predicted_value) > 1.5:
