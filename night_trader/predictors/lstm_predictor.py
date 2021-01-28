@@ -63,7 +63,7 @@ class Lstm:
             action = "buy"
 
         print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] Current: ${current_value:.2f} Projected: ${self.last_predicted_value:.2f} (Error: {current_projected_error:.1f}%) Next: ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f}¢) Action: {action}",
+            f"[{datetime.now().strftime('%H:%M:%S')}] Real: [Last: ${self.last_value:.2f} Current: ${current_value:.2f}] Model: [Last: ${self.last_last_predicted_value:.2f} Current: {self.last_predicted_value:.2f} Next: ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] (Current error: {current_projected_error: 4.0f}%) Action: {action}",
             flush=True,
         )
         self.last_value = current_value
