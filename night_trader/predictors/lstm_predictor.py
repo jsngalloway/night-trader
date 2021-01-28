@@ -15,7 +15,9 @@ class Lstm:
     dataManager: LstmDataManager
     model: tf.keras.Model
     points_needed: int
-    last_predicted_value: int
+    last_value: float
+    last_predicted_value: float
+    last_last_predicted_value: float
 
     # Lookback length: determined on creation of model: how many previous points we'll reference for each prediction
     model_lookback_length: int
@@ -27,7 +29,7 @@ class Lstm:
         self.model_interval = model_interval
         self.dataManager = dataManager
 
-        path_to_model = "models/dump_model_1"
+        path_to_model = "models/dump_model_2_ll20_xth3"
         print("Loading model from file...", end="")
         self.model = tf.keras.models.load_model(path_to_model)
         print("done.", flush=True)
@@ -43,6 +45,8 @@ class Lstm:
             tail=self.model_lookback_length, subsampling=self.model_interval
         )
         self.last_predicted_value = predict_next(self.model, data)
+        self.last_last_predicted_value = self.last_predicted_value
+        self.last_value = self.last_predicted_value
 
     def predict(self, current_price):
         data = self.dataManager.getData(
@@ -52,17 +56,17 @@ class Lstm:
 
         current_value = current_price
 
-        current_projected_error = round(
-            abs(current_value - self.last_predicted_value) / current_value * 100, 4
-        )
+        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / (current_value - self.last_value) * 100
         action = None
 
-        if (next_value - self.last_predicted_value) > 1.75:
+        if (next_value - self.last_predicted_value) > 1.5:
             action = "buy"
 
         print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] Current: ${current_value:.2f} Projected: ${self.last_predicted_value:.2f} (Error: {current_projected_error}%) Next: ${next_value:.2f} (${next_value-self.last_predicted_value:+.2f}) Action: {action}",
+            f"[{datetime.now().strftime('%H:%M:%S')}] Current: ${current_value:.2f} Projected: ${self.last_predicted_value:.2f} (Error: {current_projected_error:.1f}%) Next: ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f}¢) Action: {action}",
             flush=True,
         )
+        self.last_value = current_value
+        self.last_last_predicted_value = self.last_predicted_value
         self.last_predicted_value = next_value
         return action
