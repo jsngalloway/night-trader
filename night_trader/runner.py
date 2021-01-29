@@ -1,15 +1,11 @@
 from predictors.bac_daddy import BacDaddy
 import robin_stocks as r
 import time
-import threading
-from data_sourcer import DataSourcer
-from data_manager import DataManager
 from predictors.wma import Wma
 from predictors.lstm_predictor import Lstm
-from predictors.mac_daddy import MacDaddy
 from trader import buyAndWait, sellAndWait
 from predictors.lstm.lstm_data_manager import LstmDataManager
-from tqdm import tqdm
+import sys
 
 
 class NightTrader:
@@ -20,32 +16,38 @@ class NightTrader:
     sumwin = 0
     CRYPTO = "ETH"
     dataManager: LstmDataManager
+    simulation_mode: bool
 
-    def __init__(self):
+    def __init__(self, simulation=False):
         print(
-            "---------------------------------- Night Trader ----------------------------------"
+            "------------------------------ Night Trader ------------------------------"
         )
-        # Load and read username and password env files
-        usernameFile = open("env/username", "r")
-        username = usernameFile.read()
-        passwordFile = open("env/password", "r")
-        password = passwordFile.read()
+        self.simulation_mode = simulation
+        if self.simulation_mode:
+            print(
+                "RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE"
+            )
+        else:
+            # Load and read username and password env files
+            usernameFile = open("env/username", "r")
+            username = usernameFile.read()
+            passwordFile = open("env/password", "r")
+            password = passwordFile.read()
 
-        print("Logging in...", end="")
-        self.login = r.login(username, password)
-        if not self.login["access_token"]:
-            print("FAILURE")
-            print("system exiting.")
-            r.authentication.logout()
-            exit()
-        print("done")
+            print("Logging in...", end="")
+            self.login = r.login(username, password)
+            if not self.login["access_token"]:
+                print("FAILURE")
+                print("system exiting.")
+                r.authentication.logout()
+                exit()
+            print("done")
 
-        # buying_power = r.profiles.load_account_profile(info="crypto_buying_power")
-        # print("Crypto Buying Power: ", buying_power)
+        self.dataManager = LstmDataManager(simulation_mode=self.simulation_mode)
 
-        self.dataManager = LstmDataManager()
-        self.dataManager.updateBulk()
-        
+        if not self.simulation_mode:
+            self.dataManager.updateBulk()
+
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
 
@@ -54,13 +56,26 @@ class NightTrader:
         r.authentication.logout()
 
     def run(self):
+        if self.simulation_mode:
+            self.dataManager.incrementEndIndex()
+
         latest_data = self.updateDataManager()
 
         self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:
-        data = self.dataManager.getQuoteAndAddToData()
-        return data
+        if self.simulation_mode:
+            data = self.dataManager.getData(tail=1, subsampling=1)
+            price = data["price"].iloc[-1]
+            latest_data = {
+                "mark_price": price,
+                "ask_price": price + 1,
+                "bid_price": price - 1,
+            }
+            return latest_data
+        else:
+            data = self.dataManager.getQuoteAndAddToData()
+            return data
 
     def run_predictor(self, latest_data: dict):
         current_price = float(latest_data["mark_price"])
@@ -76,7 +91,7 @@ class NightTrader:
             else:
                 # have already bought: hold
                 return
-        elif action == 'sell':
+        elif action == "sell":
             if self.bought[0]:
                 # we have bought and now we should sell
                 # sell_success, sell_price = sellAndWait(r)
@@ -100,10 +115,13 @@ class NightTrader:
 
 
 if __name__ == "__main__":
-    # execute only if run as a script
-    nt = NightTrader()
+    # run with the argument --sim to run in simulation mode
+    sim = len(sys.argv) and str(sys.argv[1]) == "--sim"
+
+    nt = NightTrader(simulation=sim)
     while True:
         nt.run()
-        time.sleep(15)
+        if not sim:
+            time.sleep(15)
 
     nt.logout()
