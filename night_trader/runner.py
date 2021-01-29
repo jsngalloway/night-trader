@@ -16,17 +16,10 @@ class NightTrader:
 
     login: dict
     predictor = None
-    # predictorMacDaddy = None
-    # dataSourcer: DataSourcer
     bought = (False, 0.0)
-    # boughtMacDaddy = (False, 0.0)
     sumwin = 0
-    # sumwinMacDaddy = 0
     CRYPTO = "ETH"
     dataManager: LstmDataManager
-
-    run_count = 0
-    model_interval = 3  # 3*15 seconds between samples
 
     def __init__(self):
         print(
@@ -52,24 +45,18 @@ class NightTrader:
 
         self.dataManager = LstmDataManager()
         self.dataManager.updateBulk()
-        # self.predictor = Lstm(self.dataManager, self.model_interval)
+        
+        # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
 
     def logout(self):
-        # print(r.crypto.get_crypto_positions())
         # log out of robinhood at the end of the session
         r.authentication.logout()
 
     def run(self):
-        self.run_count = self.run_count + 1
-
         latest_data = self.updateDataManager()
 
-        # uncomment this line for bacdaddy
         self.run_predictor(latest_data)
-
-        # if self.run_count % self.model_interval == 0:
-        #     self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:
         data = self.dataManager.getQuoteAndAddToData()
