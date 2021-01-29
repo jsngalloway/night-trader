@@ -1,7 +1,7 @@
 from datetime import datetime
 import pandas as pd
 import robin_stocks as r
-
+import time
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
 
@@ -31,6 +31,16 @@ class LstmDataManager:
             url = r.urls.crypto_historical(ETH_ID)
             payload = {"interval": "15second", "span": "hour", "bounds": "24_7"}
             data = r.helper.request_get(url, "regular", payload)
+
+            if (
+                (not data)
+                or (not type(data) is dict)
+                or (data.get("data_points") == None)
+            ):
+                print("Invalid response, trying again in 60 seconds.")
+                time.sleep(60)
+                return getHourlyHistory()
+
             return data["data_points"]
 
         # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
@@ -60,6 +70,12 @@ class LstmDataManager:
             data = r.helper.request_get(
                 url, dataType="regular", payload=None, jsonify_data=True
             )
+
+            if (data == None) or (not type(data) is dict):
+                # We didn't get good data from robinhod, try again momentarily and ignore the lost data
+                time.sleep(60)
+                return getDataNow()
+
             return data
 
         new_data_dict = getDataNow()
