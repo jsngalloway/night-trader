@@ -73,7 +73,14 @@ class Lstm:
             self.last_value = current_value
             return None
 
-        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / abs(current_value - self.last_value) * 100
+        current_projected_error = (
+            abs(
+                (current_value - self.last_value)
+                - (self.last_predicted_value - self.last_last_predicted_value)
+            )
+            / abs(current_value - self.last_value)
+            * 100
+        )
         action = None
 
         if (next_value - self.last_predicted_value) > 1.0:

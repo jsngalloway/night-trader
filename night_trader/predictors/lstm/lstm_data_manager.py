@@ -23,7 +23,7 @@ class LstmDataManager:
         self.data = old_data
 
         if simulation_mode:
-          self.end_index = 0
+            self.end_index = 0
 
     @staticmethod
     def appendFromApi(current_list):
@@ -71,10 +71,10 @@ class LstmDataManager:
 
     def getData(self, tail, subsampling):
         if self.end_index != None:
-          return (self.data[["price"]][:self.end_index:subsampling]).tail(tail)
+            return (self.data[["price"]][: self.end_index : subsampling]).tail(tail)
         else:
-          return (self.data[["price"]][::subsampling]).tail(tail)
+            return (self.data[["price"]][::subsampling]).tail(tail)
 
     def incrementEndIndex(self):
-      assert(self.end_index != None)
-      self.end_index += 1
+        assert self.end_index != None
+        self.end_index += 1

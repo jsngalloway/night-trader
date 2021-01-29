@@ -2,6 +2,7 @@ from predictors.bac_daddy import BacDaddy
 from predictors.lstm_predictor import Lstm
 from predictors.lstm.lstm_data_manager import LstmDataManager
 
+
 class NightTrader:
     predictor = None
     bought = (False, 0.0)
@@ -27,8 +28,12 @@ class NightTrader:
 
     def updateDataManager(self) -> dict:
         data = self.dataManager.getData(tail=1, subsampling=1)
-        price = data['price'].iloc[-1]
-        latest_data = {"mark_price": price, "ask_price": price+1, "bid_price": price-1}
+        price = data["price"].iloc[-1]
+        latest_data = {
+            "mark_price": price,
+            "ask_price": price + 1,
+            "bid_price": price - 1,
+        }
         return latest_data
 
     def run_predictor(self, latest_data: dict):
@@ -41,7 +46,7 @@ class NightTrader:
         if action == "buy":
             if not self.bought[0]:
                 self.bought = (True, buyable_price)
-        elif action == 'sell':
+        elif action == "sell":
             if self.bought[0]:
                 # we have bought and now we should sell
                 # sell_success, sell_price = sellAndWait(r)
