@@ -17,7 +17,7 @@ class BacDaddy:
 
         # Calculate MACD and signal lines
         bacd_params = (12, 26, 9)
-        bacd_multiplier = 25 #25 or 111
+        bacd_multiplier = 5 #25 or 111
         exp1 = prices.ewm(span=bacd_params[0]*bacd_multiplier, adjust=False).mean()
         exp2 = prices.ewm(span=bacd_params[1]*bacd_multiplier, adjust=False).mean()
         macd = exp1 - exp2
