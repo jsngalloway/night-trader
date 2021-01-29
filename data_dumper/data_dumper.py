@@ -3,6 +3,8 @@ import pandas as pd
 import time
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
+
+# see more at https://nummus.robinhood.com/currency_pairs/
 SYMBOLS = {
     "BTC": "3d961844-d360-45fc-989b-f6fca761d511",
     "ETH": "76637d50-c702-4ed1-bcb5-5b0732a81f48",
