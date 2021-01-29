@@ -25,6 +25,8 @@ class Lstm:
     # Model Subsampling: data is recorded every 15 seconds, what interval of those should be samples (e.g. 4 = one point per minute)
     model_interval: int
 
+    predict_call_count: int
+
     def __init__(self, dataManager, model_interval):
         self.model_interval = model_interval
         self.dataManager = dataManager
@@ -35,6 +37,8 @@ class Lstm:
         print("done.", flush=True)
 
         self.model_lookback_length = self.model.input_shape[1]
+
+        self.predict_call_count = 0
 
         # print("Creating model...")
         # paths = ["data/MorningTest.csv", "data/MorningTest5.csv", "data/MorningTest6.csv", "data/MorningTest10.csv"]
@@ -49,6 +53,11 @@ class Lstm:
         # self.last_value = None
 
     def predict(self, current_price):
+        self.predict_call_count += 1
+        if self.predict_call_count % self.model_interval != 0:
+            # The model is only designed to predict every (model_interval) seconds * 15
+            return
+
         data = self.dataManager.getData(
             tail=self.model_lookback_length, subsampling=self.model_interval
         )
@@ -64,11 +73,20 @@ class Lstm:
             self.last_value = current_value
             return None
 
-        current_projected_error = abs((current_value - self.last_value) - (self.last_predicted_value - self.last_last_predicted_value)) / abs(current_value - self.last_value) * 100
+        current_projected_error = (
+            abs(
+                (current_value - self.last_value)
+                - (self.last_predicted_value - self.last_last_predicted_value)
+            )
+            / abs(current_value - self.last_value)
+            * 100
+        )
         action = None
 
-        if (next_value - self.last_predicted_value) > 1.5:
+        if (next_value - self.last_predicted_value) > 1.0:
             action = "buy"
+        else:
+            action = "sell"
 
         print(
             f"[{datetime.now().strftime('%H:%M:%S')}] Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}",

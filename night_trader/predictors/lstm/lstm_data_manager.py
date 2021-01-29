@@ -10,7 +10,10 @@ class LstmDataManager:
 
     data: pd.DataFrame = None
 
-    def __init__(self):
+    # Used for simulation only
+    end_index = None
+
+    def __init__(self, simulation_mode=False):
 
         print("Loading data from dump file...")
         old_data = pd.read_csv("data/dump.csv")
@@ -18,6 +21,9 @@ class LstmDataManager:
         old_data.columns = ["time", "price"]
 
         self.data = old_data
+
+        if simulation_mode:
+            self.end_index = 0
 
     @staticmethod
     def appendFromApi(current_list):
@@ -64,4 +70,11 @@ class LstmDataManager:
         return new_data_dict
 
     def getData(self, tail, subsampling):
-        return (self.data[["price"]][::subsampling]).tail(tail)
+        if self.end_index != None:
+            return (self.data[["price"]][: self.end_index : subsampling]).tail(tail)
+        else:
+            return (self.data[["price"]][::subsampling]).tail(tail)
+
+    def incrementEndIndex(self):
+        assert self.end_index != None
+        self.end_index += 1

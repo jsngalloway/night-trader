@@ -1,5 +1,6 @@
 import robin_stocks as r
 import pandas as pd
+import time
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
 
@@ -9,6 +10,10 @@ def getHistorical() -> dict:
                 'span': "hour",
                 'bounds': "24_7"}
     data = r.helper.request_get(url, 'regular', payload)
+    if (not data) or (not type(data) is dict) or (data.get('data_points') == None):
+      print("Invalid response, trying again in 60 seconds.")
+      time.sleep(60)
+      return getHistorical()
     return data['data_points']
 
 if __name__ == "__main__":
@@ -37,4 +42,9 @@ if __name__ == "__main__":
     
     print("Dumping...")
     df.to_csv("D:/Documents/Projects/night-trader/data/dump.csv", header=False, index=False, mode='a')
+    print("Dump complete")
+
+    print("Dumping full data...")
+    full_df = pd.DataFrame(raw_data)[["begins_at", "open_price", "close_price", "high_price", "low_price", "volume"]]
+    full_df.to_csv("D:/Documents/Projects/night-trader/data/ETH.csv", header=False, index=False, mode='a')
     print("Dump complete")
