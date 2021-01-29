@@ -78,4 +78,4 @@ if __name__ == "__main__":
     print("Dump complete")
 
     appendToFile("D:/Documents/Projects/night-trader/data/ETH.csv", SYMBOLS["ETH"])
-    appendToFile("D:/Documents/Projects/night-trader/data/ETH.csv", SYMBOLS["LTC"])
+    appendToFile("D:/Documents/Projects/night-trader/data/LTC.csv", SYMBOLS["LTC"])
