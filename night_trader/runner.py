@@ -1,3 +1,4 @@
+from predictors.bac_daddy import BacDaddy
 import robin_stocks as r
 import time
 import threading
@@ -51,7 +52,8 @@ class NightTrader:
 
         self.dataManager = LstmDataManager()
         self.dataManager.updateBulk()
-        self.predictor = Lstm(self.dataManager, self.model_interval)
+        # self.predictor = Lstm(self.dataManager, self.model_interval)
+        self.predictor = BacDaddy(self.dataManager)
 
     def logout(self):
         # print(r.crypto.get_crypto_positions())
@@ -63,8 +65,11 @@ class NightTrader:
 
         latest_data = self.updateDataManager()
 
-        if self.run_count % self.model_interval == 0:
-            self.run_predictor(latest_data)
+        # uncomment this line for bacdaddy
+        self.run_predictor(latest_data)
+
+        # if self.run_count % self.model_interval == 0:
+        #     self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:
         data = self.dataManager.getQuoteAndAddToData()
@@ -84,7 +89,7 @@ class NightTrader:
             else:
                 # have already bought: hold
                 return
-        else:
+        elif action == 'sell':
             if self.bought[0]:
                 # we have bought and now we should sell
                 # sell_success, sell_price = sellAndWait(r)
@@ -94,7 +99,7 @@ class NightTrader:
                     profit = sell_price - self.bought[1]
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
                     print(
-                        "LSTM: Bought at:",
+                        "BAC_DADDY: Bought at:",
                         self.bought[1],
                         "Selling at",
                         sell_price,
@@ -105,8 +110,6 @@ class NightTrader:
                         flush=True,
                     )
                     self.bought = (False, 0)
-            else:
-                return
 
 
 if __name__ == "__main__":
