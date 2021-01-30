@@ -1,7 +1,6 @@
 from predictors.bac_daddy import BacDaddy
 import robin_stocks as r
 import time
-from predictors.wma import Wma
 from predictors.lstm_predictor import Lstm
 from trader import buyAndWait, sellAndWait
 from predictors.lstm.lstm_data_manager import LstmDataManager
@@ -18,6 +17,8 @@ logging.basicConfig(
     ]
 )
 
+log = logging.getLogger(__name__)
+
 class NightTrader:
 
     login: dict
@@ -32,12 +33,11 @@ class NightTrader:
         print(
             "------------------------------ Night Trader ------------------------------"
         )
-        log = logging.getLogger(__name__)
         log.info(f"Initializing night-trader. Simulation mode: {simulation}")
 
         self.simulation_mode = simulation
         if self.simulation_mode:
-            log.warn("RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE")
+            log.warning("RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE")
         else:
             # Load and read username and password env files
             log.debug("Loading username and password from files")
@@ -112,17 +112,7 @@ class NightTrader:
                 if sell_success:
                     profit = sell_price - self.bought[1]
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    print(
-                        "BAC_DADDY: Bought at:",
-                        self.bought[1],
-                        "Selling at",
-                        sell_price,
-                        "for Profit:",
-                        profit,
-                        "TOTAL:",
-                        self.sumwin,
-                        flush=True,
-                    )
+                    log.info(f"BAC_DADDY: Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                     self.bought = (False, 0)
 
 

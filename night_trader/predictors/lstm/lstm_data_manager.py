@@ -2,9 +2,11 @@ from datetime import datetime
 import pandas as pd
 import robin_stocks as r
 import time
+import logging
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
 
+log = logging.getLogger(__name__)
 
 class LstmDataManager:
 
@@ -14,19 +16,22 @@ class LstmDataManager:
     end_index = None
 
     def __init__(self, simulation_mode=False):
+        log.info(f"Initializing LstmDataManager. Simulation mode: {simulation_mode}")
 
-        print("Loading data from dump file...")
+        log.debug(f"Loading data from dump file...")
         old_data = pd.read_csv("data/dump.csv")
 
         old_data.columns = ["time", "price"]
 
         self.data = old_data
+        log.debug(f"Load data complete.")
 
         if simulation_mode:
             self.end_index = 0
 
     @staticmethod
     def appendFromApi(current_list):
+        
         def getHourlyHistory() -> dict:
             url = r.urls.crypto_historical(ETH_ID)
             payload = {"interval": "15second", "span": "hour", "bounds": "24_7"}
@@ -37,29 +42,31 @@ class LstmDataManager:
                 or (not type(data) is dict)
                 or (data.get("data_points") == None)
             ):
-                print("Invalid response, trying again in 60 seconds.")
+                log.error(f"Invalid response, trying again in 60 seconds.")
                 time.sleep(60)
                 return getHourlyHistory()
 
             return data["data_points"]
 
         # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
+        log.info("Getting past hourly data...")
         raw_data = getHourlyHistory()
         df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]
         df = df.rename(columns={"begins_at": "time", "open_price": "price"})
 
         # it comes in as a string, so convert to numbers
         df["price"] = pd.to_numeric(df["price"])
-        print(f"Loaded: {len(current_list)} rows from file")
-        print(f"Got: {len(df)} rows from the api just now")
+        log.debug(f"Loaded: {len(current_list)} rows from file")
+        log.debug(f"Got: {len(df)} rows from the api just now")
         sum_data = pd.concat([current_list, df])
-        print(f"Appended to get: {len(sum_data)} rows")
+        log.debug(f"Appended to get: {len(sum_data)} rows")
         sum_data = sum_data[~sum_data[["time"]].duplicated(keep="first")]
-        print(f"Removing dupes got us: {len(sum_data)} rows")
+        log.info(f"Removing dupes got us: {len(sum_data)} rows")
         return sum_data
 
     def updateBulk(self):
         self.data = self.appendFromApi(self.data)
+        log.debug("Bulk update complete")
 
     def getQuoteAndAddToData(self) -> dict:
         def getDataNow() -> dict:

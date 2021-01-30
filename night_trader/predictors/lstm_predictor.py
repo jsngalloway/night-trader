@@ -1,13 +1,13 @@
 import pandas as pd
 import tensorflow as tf
 from datetime import datetime
-
-from tensorflow.python.platform.tf_logging import flush
+import logging
 
 from predictors.lstm.lstm_creator import createLstmModelFromDatasets
 from predictors.lstm.predict_next_value import predict_next, load_x_from_file
 from predictors.lstm.lstm_data_manager import LstmDataManager
 
+log = logging.getLogger(__name__)
 
 class Lstm:
 
@@ -32,9 +32,9 @@ class Lstm:
         self.dataManager = dataManager
 
         path_to_model = "models/dump_model_2_ll20_xth3"
-        print("Loading model from file...", end="")
+        log.info(f"Loading model from file: {path_to_model}")
         self.model = tf.keras.models.load_model(path_to_model)
-        print("done.", flush=True)
+        log.info("model loaded.")
 
         self.model_lookback_length = self.model.input_shape[1]
 
@@ -84,14 +84,12 @@ class Lstm:
         action = None
 
         if (next_value - self.last_predicted_value) > 1.0:
+            log.info(f"Got buy signal, predicted change is ({next_value-self.last_predicted_value:+.2f})")
             action = "buy"
         else:
             action = "sell"
 
-        print(
-            f"[{datetime.now().strftime('%H:%M:%S')}] Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}",
-            flush=True,
-        )
+        log.debug(f"Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}")
         self.last_value = current_value
         self.last_last_predicted_value = self.last_predicted_value
         self.last_predicted_value = next_value
