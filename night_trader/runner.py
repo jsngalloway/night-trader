@@ -6,7 +6,17 @@ from predictors.lstm_predictor import Lstm
 from trader import buyAndWait, sellAndWait
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
+import logging
 
+# Set up logging logic
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler("debug.log"),
+        logging.StreamHandler()
+    ]
+)
 
 class NightTrader:
 
@@ -22,26 +32,28 @@ class NightTrader:
         print(
             "------------------------------ Night Trader ------------------------------"
         )
+        log = logging.getLogger(__name__)
+        log.info(f"Initializing night-trader. Simulation mode: {simulation}")
+
         self.simulation_mode = simulation
         if self.simulation_mode:
-            print(
-                "RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE"
-            )
+            log.warn("RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE")
         else:
             # Load and read username and password env files
+            log.debug("Loading username and password from files")
             usernameFile = open("env/username", "r")
             username = usernameFile.read()
             passwordFile = open("env/password", "r")
             password = passwordFile.read()
 
             print("Logging in...", end="")
+            log.debug("Authenticating with robinhood...")
             self.login = r.login(username, password)
             if not self.login["access_token"]:
-                print("FAILURE")
-                print("system exiting.")
+                log.error("Unable to authenticate, exiting.")
                 r.authentication.logout()
                 exit()
-            print("done")
+            log.debug("Authentication complete.")
 
         self.dataManager = LstmDataManager(simulation_mode=self.simulation_mode)
 
@@ -116,7 +128,7 @@ class NightTrader:
 
 if __name__ == "__main__":
     # run with the argument --sim to run in simulation mode
-    sim = len(sys.argv) and str(sys.argv[1]) == "--sim"
+    sim = len(sys.argv) == 2 and str(sys.argv[1]) == "--sim"
 
     nt = NightTrader(simulation=sim)
     while True:
