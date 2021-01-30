@@ -79,9 +79,9 @@ class LstmDataManager:
             )
 
             if (data == None) or (not type(data) is dict):
-                # We didn't get good data from robinhod, try again momentarily and ignore the lost data
-                time.sleep(60)
-                return getDataNow()
+              log.error("Unable to fetch data from robinhood")
+              log.error(data)
+              return None
 
             return data
 

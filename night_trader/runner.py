@@ -72,8 +72,12 @@ class NightTrader:
             self.dataManager.incrementEndIndex()
 
         latest_data = self.updateDataManager()
-
-        self.run_predictor(latest_data)
+        
+        if latest_data == None:
+          log.error("No data was received, skipping prediction iteration")
+          return
+        else:
+          self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:
         if self.simulation_mode:
