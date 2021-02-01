@@ -66,7 +66,7 @@ class LstmDataManager:
         data = pd.DataFrame(raw_data)
         data["high_price"] = pd.to_numeric(data['high_price'])
         data["low_price"] = pd.to_numeric(data['low_price'])
-        data["begins_at"] = pd.to_datetime(data['begins_at'])
+        data["time"] = pd.to_datetime(data['begins_at'])
         
         df = LstmDataManager.averageAndRename(data)
         # df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]

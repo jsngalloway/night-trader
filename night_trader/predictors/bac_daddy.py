@@ -5,7 +5,7 @@ import logging
 
 import matplotlib.pyplot as plt
 
-plt.style.use('fivethirtyeight')
+plt.style.use('seaborn-darkgrid')
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class BacDaddy:
     dataManager: LstmDataManager
     
     bacd_params = (12, 26, 9)
-    period_multiplier = 175  # 25 or 111
+    period_multiplier = 175  #175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer
@@ -46,12 +46,13 @@ class BacDaddy:
         macd = exp1 - exp2
         signal = macd.ewm(span=self.bacd_params[2] * self.period_multiplier, adjust=False).mean()
 
-        data = data.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True)))
-        macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True)))
-        signal = signal.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True)))
+        data = data.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
+        macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
+        signal = signal.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
 
         
         # TODO Remove plotting
+        plt.rcParams['timezone'] = data.index.tz.zone
         axs[0].clear()
         axs[1].clear()
         axs[0].plot(data.price.tail(1000), label='Price', linewidth=2)
@@ -68,14 +69,14 @@ class BacDaddy:
         if (macd.price.iat[-1] < signal.price.iat[-1]) and (
             macd.price.iat[-2] >= signal.price.iat[-2]
         ):
-            log.info(f"Got buying signal at [{latest_time}] ${latest_price:.2f}")
+            log.info(f"Got BUY signal at [{latest_time}] ${latest_price:.2f}")
             # wanna_buy = data.price.tail(5).mean() + ((data.price.tail(5).mean() - data.price.tail(5).min()) * 0.5)
             # log.info(f"Will attempt to buy at: {wanna_buy}")
             return "buy"
         elif (macd.price.iat[-1] > signal.price.iat[-1]) and (
             macd.price.iat[-2] <= signal.price.iat[-2]
         ):
-            log.info(f"Got Selling signal at [{latest_time}] ${latest_price:.2f}")
+            log.info(f"Got SELL signal at [{latest_time}] ${latest_price:.2f}")
             # wanna_sell = data.price.tail(5).mean() - ((data.price.tail(5).mean() - data.price.tail(5).max()) * 0.5)
             # log.info(f"Will attempt to sell at: {wanna_sell}")
             return "sell"
