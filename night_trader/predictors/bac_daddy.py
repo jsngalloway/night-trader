@@ -3,21 +3,31 @@ from datetime import datetime
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import logging
 
-# import matplotlib.pyplot as plt
-# plt.style.use('fivethirtyeight')
+import matplotlib.pyplot as plt
+
+plt.style.use('fivethirtyeight')
 
 log = logging.getLogger(__name__)
 
-# plt.ion()
-# plt.figure(figsize=(12.2,7.5)) #width = 12.2in, height = 4.5
-# fig, axs = plt.subplots(2)
+# TODO REMOVE
+plt.ion()
+fig, axs = plt.subplots(2, figsize=(12.2, 7.5), sharex=True)
+plt.xticks(rotation=45)
+# Set common labels
+axs[0].set_xlabel('Time')
+axs[1].set_xlabel('Time')
+axs[0].set_ylabel('ETH in USD')
+plt.tight_layout()
+
+# ############################
+
 class BacDaddy:
 
     prices: pd.DataFrame = pd.DataFrame({"price": []})
     dataManager: LstmDataManager
     
     bacd_params = (12, 26, 9)
-    period_multiplier = 10  # 25 or 111
+    period_multiplier = 175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer
@@ -40,18 +50,17 @@ class BacDaddy:
         macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True)))
         signal = signal.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True)))
 
-        # axs[0].clear()
-        # axs[1].clear()
-        # axs[0].plot(data.price.tail(150), label='Price', linewidth=1)
-        # axs[0].plot(data[["price"]].ewm(span=10, adjust=True).mean().tail(150), label='Avg', linewidth=1)
-        # axs[1].plot(macd.tail(150), label='ETH MACD', color = 'red', linewidth=1)
-        # axs[1].plot(signal.tail(150), label='Signal Line', color='blue', linewidth=1)
-        # # axs[0].xticks(rotation=45) 
-        # # plt.title("Price over time")
-        # # axs[1].xlabel('Time',fontsize=18)
-        # plt.tight_layout()
-        # plt.draw()
-        # plt.pause(.001)
+        
+        # TODO Remove plotting
+        axs[0].clear()
+        axs[1].clear()
+        axs[0].plot(data.price.tail(1000), label='Price', linewidth=2)
+        axs[1].plot(macd.tail(1000), label='ETH MACD', color = 'red', linewidth=1)
+        axs[1].plot(signal.tail(1000), label='Signal Line', color='blue', linewidth=1)
+        axs[0].grid(b=True, which='both', axis='both')
+        plt.draw()
+        plt.pause(.001)
+        # --------------------------------------
 
         log.debug(f"Using data ({data.time.iat[0]} {data.time.iat[-1]} : {len(data)})macd is at: {macd.price.iat[-1]} signal is at: {signal.price.iat[-1]}")
 
