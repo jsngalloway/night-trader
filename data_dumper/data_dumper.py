@@ -83,3 +83,4 @@ if __name__ == "__main__":
     appendToFile("D:/Documents/Projects/night-trader/data/LTC.csv", SYMBOLS["LTC"])
     appendToFile("D:/Documents/Projects/night-trader/data/BCH.csv", SYMBOLS["BCH"])
     appendToFile("D:/Documents/Projects/night-trader/data/ETC.csv", SYMBOLS["ETC"])
+    appendToFile("D:/Documents/Projects/night-trader/data/BTC.csv", SYMBOLS["BTC"])
