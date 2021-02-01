@@ -13,7 +13,10 @@ def scaleData(
     datasets = []
     for path in paths_to_datasets:
         # perform partial fits on all datasets
-        datasets.append(pd.read_csv(path)[["price"]][::sub_sampling])
+        from_csv = pd.read_csv(path)
+        new_df = pd.DataFrame()
+        new_df["price"] = from_csv[["high_price","low_price"]].mean(axis=1)
+        datasets.append(new_df[::sub_sampling])
         scaler = scaler.partial_fit(datasets[-1])
     for i in range(len(datasets)):
         # once all partial fits have been performed, transform every file
