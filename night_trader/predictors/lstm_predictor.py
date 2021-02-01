@@ -89,7 +89,7 @@ class Lstm:
         else:
             action = "sell"
 
-        log.debug(f"Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}")
+        log.info(f"Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}")
         self.last_value = current_value
         self.last_last_predicted_value = self.last_predicted_value
         self.last_predicted_value = next_value

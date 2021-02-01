@@ -18,16 +18,27 @@ class LstmDataManager:
     def __init__(self, simulation_mode=False):
         log.info(f"Initializing LstmDataManager. Simulation mode: {simulation_mode}")
 
-        log.debug(f"Loading data from dump file...")
-        old_data = pd.read_csv("data/dump.csv")
+        log.info(f"Loading data from dump file...")
+        old_data = pd.read_csv("data/ETH.csv")
 
-        old_data.columns = ["time", "price"]
+        # old_data.columns = ["time", "price"]
+        self.data = self.averageAndRename(old_data)
 
-        self.data = old_data
-        log.debug(f"Load data complete.")
+
+
+        # self.data = old_data
+        log.info(f"Load data complete: {len(self.data)} rows loaded. Latest row time: {self.data.time.iat[-1]}")
 
         if simulation_mode:
-            self.end_index = 0
+            self.end_index = 500 #start with 500 samples
+
+    @staticmethod
+    def averageAndRename(begin_high_low_dataFrame: pd.DataFrame):
+        new_dataFrame = pd.DataFrame()
+        new_dataFrame['price'] = begin_high_low_dataFrame[['high_price','low_price']].mean(axis=1)
+        new_dataFrame['time'] = begin_high_low_dataFrame['begins_at']
+        new_dataFrame = new_dataFrame.set_index(pd.DatetimeIndex(begin_high_low_dataFrame['begins_at'].values))
+        return new_dataFrame
 
     @staticmethod
     def appendFromApi(current_list):
@@ -51,22 +62,31 @@ class LstmDataManager:
         # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
         log.info("Getting past hourly data...")
         raw_data = getHourlyHistory()
-        df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]
-        df = df.rename(columns={"begins_at": "time", "open_price": "price"})
+
+        data = pd.DataFrame(raw_data)
+        data["high_price"] = pd.to_numeric(data['high_price'])
+        data["low_price"] = pd.to_numeric(data['low_price'])
+        data["begins_at"] = pd.to_datetime(data['begins_at'])
+        
+        df = LstmDataManager.averageAndRename(data)
+        # df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]
+        # df = df.rename(columns={"begins_at": "time", "open_price": "price"})
 
         # it comes in as a string, so convert to numbers
-        df["price"] = pd.to_numeric(df["price"])
-        log.debug(f"Loaded: {len(current_list)} rows from file")
-        log.debug(f"Got: {len(df)} rows from the api just now")
-        sum_data = pd.concat([current_list, df])
-        log.debug(f"Appended to get: {len(sum_data)} rows")
+        # df["price"] = pd.to_numeric(df["price"])
+        log.info(f"Loaded: {len(current_list)} rows from file")
+        log.info(f"Got: {len(df)} rows from the api just now")
+        sum_data = pd.concat([current_list, df], ignore_index=True)
+        log.info(f"Appended to get: {len(sum_data)} rows")
         sum_data = sum_data[~sum_data[["time"]].duplicated(keep="first")]
         log.info(f"Removing dupes got us: {len(sum_data)} rows")
         return sum_data
 
     def updateBulk(self):
         self.data = self.appendFromApi(self.data)
-        log.debug("Bulk update complete")
+        log.info("Bulk update complete")
+        # print(self.data.head(250))
+        # print(self.data.tail(250))
 
     def getQuoteAndAddToData(self) -> dict:
         def getDataNow() -> dict:
@@ -77,26 +97,31 @@ class LstmDataManager:
             data = r.helper.request_get(
                 url, dataType="regular", payload=None, jsonify_data=True
             )
+            time_string = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
+            data["time"] =  time_string
 
             if (data == None) or (not type(data) is dict):
               log.error("Unable to fetch data from robinhood")
               log.error(data)
               return None
 
+            # print(self.data.tail(5))
+
             return data
 
         new_data_dict = getDataNow()
         price = float(new_data_dict["mark_price"])
+        time_string = new_data_dict["time"]
         self.data = self.data.append(
-            {"time": datetime.now(), "price": price}, ignore_index=True
+            {"time": time_string, "price": price}, ignore_index=True
         )
         return new_data_dict
 
     def getData(self, tail, subsampling):
         if self.end_index != None:
-            return (self.data[["price"]][: self.end_index : subsampling]).tail(tail)
+            return (self.data.iloc[: self.end_index]).tail(tail)
         else:
-            return (self.data[["price"]][::subsampling]).tail(tail)
+            return (self.data).tail(tail)
 
     def incrementEndIndex(self):
         assert self.end_index != None

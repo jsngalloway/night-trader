@@ -7,9 +7,9 @@ from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
 import logging
 
-# Set up logging logic
+# Set up logging format
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler("debug.log"),
@@ -30,7 +30,7 @@ class NightTrader:
     simulation_mode: bool
 
     def __init__(self, simulation=False):
-        print(
+        log.info(
             "------------------------------ Night Trader ------------------------------"
         )
         log.info(f"Initializing night-trader. Simulation mode: {simulation}")
@@ -40,20 +40,19 @@ class NightTrader:
             log.warning("RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE")
         else:
             # Load and read username and password env files
-            log.debug("Loading username and password from files")
+            log.info("Loading username and password from files")
             usernameFile = open("env/username", "r")
             username = usernameFile.read()
             passwordFile = open("env/password", "r")
             password = passwordFile.read()
 
-            print("Logging in...", end="")
-            log.debug("Authenticating with robinhood...")
+            log.info("Authenticating with robinhood...")
             self.login = r.login(username, password)
             if not self.login["access_token"]:
                 log.error("Unable to authenticate, exiting.")
                 r.authentication.logout()
                 exit()
-            log.debug("Authentication complete.")
+            log.info("Authentication complete.")
 
         self.dataManager = LstmDataManager(simulation_mode=self.simulation_mode)
 
@@ -83,10 +82,12 @@ class NightTrader:
         if self.simulation_mode:
             data = self.dataManager.getData(tail=1, subsampling=1)
             price = data["price"].iloc[-1]
+            time = str(data[['time']].iloc[-1, 0])
             latest_data = {
                 "mark_price": price,
                 "ask_price": price + 1,
                 "bid_price": price - 1,
+                "time": time
             }
             return latest_data
         else:
@@ -97,6 +98,7 @@ class NightTrader:
         current_price = float(latest_data["mark_price"])
         buyable_price = float(latest_data["ask_price"])
         sellable_price = float(latest_data["bid_price"])
+        current_time = latest_data["time"]
 
         action = self.predictor.predict(current_price)
 
@@ -116,7 +118,7 @@ class NightTrader:
                 if sell_success:
                     profit = sell_price - self.bought[1]
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    log.info(f"BAC_DADDY: Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
+                    log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                     self.bought = (False, 0)
 
 
