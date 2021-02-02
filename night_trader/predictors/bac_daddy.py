@@ -67,14 +67,14 @@ class BacDaddy:
 
         # using the opposite of conventional logic...
         if (macd.price.iat[-1] < signal.price.iat[-1]) and (
-            macd.price.iat[-2] >= signal.price.iat[-2]
+            macd.price.iat[-2] > signal.price.iat[-2]
         ):
             log.info(f"Got BUY signal at [{latest_time}] ${latest_price:.2f}")
             # wanna_buy = data.price.tail(5).mean() + ((data.price.tail(5).mean() - data.price.tail(5).min()) * 0.5)
             # log.info(f"Will attempt to buy at: {wanna_buy}")
             return "buy"
         elif (macd.price.iat[-1] > signal.price.iat[-1]) and (
-            macd.price.iat[-2] <= signal.price.iat[-2]
+            macd.price.iat[-2] < signal.price.iat[-2]
         ):
             log.info(f"Got SELL signal at [{latest_time}] ${latest_price:.2f}")
             # wanna_sell = data.price.tail(5).mean() - ((data.price.tail(5).mean() - data.price.tail(5).max()) * 0.5)
