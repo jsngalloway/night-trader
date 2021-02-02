@@ -13,18 +13,22 @@ from trade import Trade
 # partially-filled?
 
 log = logging.getLogger(__name__)
-EXCH_QUANT = 0.05
-SYMBOL = "ETH"
+
 class Trader:
 
   # This will serve as a list of ids for orders we're working on
   buys: list
   sells: list
 
-  def __init__(self):
+  EXCH_QUANT: float
+  SYMBOL: str
+
+  def __init__(self, symbol: str, exch_quantity: float):
 
     self.buys = []
     self.sells = []
+    self.SYMBOL = symbol
+    self.EXCH_QUANT = exch_quantity
 
   # def checkForOpenOrders(self) -> Tuple(list, list):
   #   open_buys = []
@@ -37,21 +41,33 @@ class Trader:
   #       open_sells.append(order['id'])
   #   print("Open Crypto Orders I've placed (buys/sells)", open_buys, open_sells)
   #   return (open_buys, open_sells)
+  def getProfit(self):
+    cost = 0
+    returns = 0
+    for t in self.buys:
+      if (not t.open) and t.filled_price:
+        cost += t.filled_price
+
+    for t in self.sells:
+      if (not t.open) and t.filled_price:
+        returns += t.filled_price
+
+    return returns - cost
 
   def buy(self, max_buy_price):
       self.cancelOpenSells()
 
       will_pay = round(max_buy_price, 2)
-      buy_info = r.orders.order_buy_crypto_limit(SYMBOL, EXCH_QUANT, will_pay)
-      trade = Trade('buy', buy_info["id"], will_pay, EXCH_QUANT)
+      buy_info = r.orders.order_buy_crypto_limit(self.SYMBOL, self.EXCH_QUANT, will_pay)
+      trade = Trade('buy', buy_info["id"], will_pay, self.EXCH_QUANT)
       self.buys.append(trade)
 
   def sell(self, min_sell_price):
       self.cancelOpenSells()
       
       will_get = round(min_sell_price, 2)
-      buy_info = r.orders.order_sell_crypto_limit(SYMBOL, EXCH_QUANT, will_get)
-      trade = Trade('sell', buy_info["id"], will_get, EXCH_QUANT)
+      buy_info = r.orders.order_sell_crypto_limit(self.SYMBOL, self.EXCH_QUANT, will_get)
+      trade = Trade('sell', buy_info["id"], will_get, self.EXCH_QUANT)
       self.sells.append(trade)
 
   def cancelOpenBuys(self):

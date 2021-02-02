@@ -2,7 +2,7 @@ from predictors.bac_daddy import BacDaddy
 import robin_stocks as r
 import time
 from predictors.lstm_predictor import Lstm
-from trader import buyAndWait, sellAndWait
+from trader import Trader
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
 import logging
@@ -28,6 +28,7 @@ class NightTrader:
     CRYPTO = "ETH"
     dataManager: LstmDataManager
     simulation_mode: bool
+    trader: Trader
 
     def __init__(self, simulation=False):
         log.info(
@@ -58,6 +59,7 @@ class NightTrader:
 
         if not self.simulation_mode:
             self.dataManager.updateBulk()
+            self.trader = Trader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
@@ -104,7 +106,7 @@ class NightTrader:
 
         if action == "buy":
             if not self.bought[0]:
-                # self.bought = buyAndWait(r)
+                # self.trader.buy(buyable_price)
                 self.bought = (True, buyable_price)
             else:
                 # have already bought: hold
@@ -112,7 +114,7 @@ class NightTrader:
         elif action == "sell":
             if self.bought[0]:
                 # we have bought and now we should sell
-                # sell_success, sell_price = sellAndWait(r)
+                # self.trader.sell(sellable_price)
                 sell_success = True
                 sell_price = sellable_price
                 if sell_success:
@@ -120,6 +122,11 @@ class NightTrader:
                     self.sumwin = self.sumwin + sell_price - self.bought[1]
                     log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                     self.bought = (False, 0)
+        
+        # if self.sumwin != self.trader.getProfits():
+        #   new_profits = self.trader.getProfits()
+        #   print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
+        #   self.sumwin = new_profits
 
 
 if __name__ == "__main__":
