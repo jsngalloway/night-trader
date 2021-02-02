@@ -41,6 +41,7 @@ class Trader:
   #       open_sells.append(order['id'])
   #   print("Open Crypto Orders I've placed (buys/sells)", open_buys, open_sells)
   #   return (open_buys, open_sells)
+  
   def getProfit(self):
     cost = 0
     returns = 0

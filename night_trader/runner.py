@@ -3,6 +3,7 @@ import robin_stocks as r
 import time
 from predictors.lstm_predictor import Lstm
 from trader import Trader
+from sim_trader import SimTrader
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
 import logging
@@ -59,7 +60,8 @@ class NightTrader:
 
         if not self.simulation_mode:
             self.dataManager.updateBulk()
-            self.trader = Trader(self.CRYPTO, 0.05)
+        
+        self.trader = SimTrader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
@@ -106,7 +108,7 @@ class NightTrader:
 
         if action == "buy":
             if not self.bought[0]:
-                # self.trader.buy(buyable_price)
+                self.trader.buy(buyable_price)
                 self.bought = (True, buyable_price)
             else:
                 # have already bought: hold
@@ -114,7 +116,7 @@ class NightTrader:
         elif action == "sell":
             if self.bought[0]:
                 # we have bought and now we should sell
-                # self.trader.sell(sellable_price)
+                self.trader.sell(sellable_price)
                 sell_success = True
                 sell_price = sellable_price
                 if sell_success:
@@ -123,10 +125,10 @@ class NightTrader:
                     log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                     self.bought = (False, 0)
         
-        # if self.sumwin != self.trader.getProfits():
-        #   new_profits = self.trader.getProfits()
-        #   print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
-        #   self.sumwin = new_profits
+        if self.sumwin != self.trader.getProfits():
+          new_profits = self.trader.getProfits()
+          print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
+          self.sumwin = new_profits
 
 
 if __name__ == "__main__":
