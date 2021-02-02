@@ -9,7 +9,7 @@ import logging
 
 # Set up logging format
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler("debug.log"),

@@ -27,7 +27,7 @@ class BacDaddy:
     dataManager: LstmDataManager
     
     bacd_params = (12, 26, 9)
-    period_multiplier = 175  #175  # 25 or 111
+    period_multiplier = 8  #175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer
