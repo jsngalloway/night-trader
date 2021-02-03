@@ -142,6 +142,6 @@ if __name__ == "__main__":
     while(True):
         nt.run()
         # schedule.run_pending() 
-        # time.sleep(15) 
+        time.sleep(15) 
 
     # nt.logout()
