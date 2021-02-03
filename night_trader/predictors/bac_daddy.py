@@ -2,14 +2,12 @@ import pandas as pd
 from datetime import datetime
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import logging
-
 import matplotlib.pyplot as plt
-
-plt.style.use('seaborn-darkgrid')
 
 log = logging.getLogger(__name__)
 
 # TODO REMOVE
+plt.style.use('seaborn-darkgrid')
 plt.ion()
 fig, axs = plt.subplots(2, figsize=(12.2, 7.5), sharex=True)
 plt.xticks(rotation=45)
@@ -18,7 +16,6 @@ axs[0].set_xlabel('Time')
 axs[1].set_xlabel('Time')
 axs[0].set_ylabel('ETH in USD')
 plt.tight_layout()
-
 # ############################
 
 class BacDaddy:
@@ -27,7 +24,7 @@ class BacDaddy:
     dataManager: LstmDataManager
     
     bacd_params = (12, 26, 9)
-    period_multiplier = 8  #175  # 25 or 111
+    period_multiplier = 16  #175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer

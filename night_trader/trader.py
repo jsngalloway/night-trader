@@ -46,38 +46,51 @@ class Trader:
     cost = 0
     returns = 0
     for t in self.buys:
-      if (not t.open) and t.filled_price:
-        cost += t.filled_price
+      if (not t.open) and t.fill_price:
+        cost += t.fill_price
 
     for t in self.sells:
-      if (not t.open) and t.filled_price:
-        returns += t.filled_price
+      if (not t.open) and t.fill_price:
+        returns += t.fill_price
 
     return returns - cost
 
   def buy(self, max_buy_price):
       self.cancelOpenSells()
+      self.cancelOpenBuys()
 
       will_pay = round(max_buy_price, 2)
       buy_info = r.orders.order_buy_crypto_limit(self.SYMBOL, self.EXCH_QUANT, will_pay)
-      trade = Trade('buy', buy_info["id"], will_pay, self.EXCH_QUANT)
-      self.buys.append(trade)
+      if buy_info and ("id" in buy_info):
+        trade = Trade('buy', buy_info["id"], will_pay, self.EXCH_QUANT)
+        self.buys.append(trade)
+      else:
+        log.error("Unknown return on buy attempt")
+        log.error(buy_info)
+        print(buy_info)
+
 
   def sell(self, min_sell_price):
+      self.cancelOpenBuys()
       self.cancelOpenSells()
       
       will_get = round(min_sell_price, 2)
       buy_info = r.orders.order_sell_crypto_limit(self.SYMBOL, self.EXCH_QUANT, will_get)
-      trade = Trade('sell', buy_info["id"], will_get, self.EXCH_QUANT)
-      self.sells.append(trade)
+      if buy_info and ("id" in buy_info):
+        trade = Trade('sell', buy_info["id"], will_get, self.EXCH_QUANT)
+        self.sells.append(trade)
+      else:
+        log.error("Unknown return on sell attempt")
+        log.error(buy_info)
+        print(buy_info)
 
   def cancelOpenBuys(self):
     open_buys = []
     for buy in self.buys:
       if buy.open:
         open_buys.append(buy)
-    log.warning(f"Cancelling buy orders ({len(open_buys)})")
     for trade in open_buys:
+      log.warning(f"Cancelling buy order ({trade.id})")
       trade.cancel()
 
   def cancelOpenSells(self):
@@ -85,6 +98,6 @@ class Trader:
     for trade in self.sells:
       if trade.open:
         open_sells.append(trade)
-    log.warning(f"Cancelling sell orders ({len(open_sells)})")
     for trade in open_sells:
+      log.warning(f"Cancelling sell order ({trade.id})")
       trade.cancel()

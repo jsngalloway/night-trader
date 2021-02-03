@@ -1,12 +1,14 @@
 from predictors.bac_daddy import BacDaddy
 import robin_stocks as r
 import time
+import schedule
 from predictors.lstm_predictor import Lstm
 from trader import Trader
 from sim_trader import SimTrader
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
 import logging
+import threading
 
 # Set up logging format
 logging.basicConfig(
@@ -61,7 +63,7 @@ class NightTrader:
         if not self.simulation_mode:
             self.dataManager.updateBulk()
         
-        self.trader = SimTrader(self.CRYPTO, 0.05)
+        self.trader = Trader(self.CRYPTO, 0.025)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
@@ -110,23 +112,20 @@ class NightTrader:
             if not self.bought[0]:
                 self.trader.buy(buyable_price)
                 self.bought = (True, buyable_price)
-            else:
-                # have already bought: hold
-                return
         elif action == "sell":
             if self.bought[0]:
                 # we have bought and now we should sell
                 self.trader.sell(sellable_price)
-                sell_success = True
-                sell_price = sellable_price
-                if sell_success:
-                    profit = sell_price - self.bought[1]
-                    self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
-                    self.bought = (False, 0)
-        
-        if self.sumwin != self.trader.getProfits():
-          new_profits = self.trader.getProfits()
+                # sell_success = True
+                # sell_price = sellable_price
+                # if sell_success:
+                    # profit = sell_price - self.bought[1]
+                    # self.sumwin = self.sumwin + sell_price - self.bought[1]
+                    # log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
+                self.bought = (False, 0)
+
+        if (not self.bought[0]) and self.sumwin != self.trader.getProfit():
+          new_profits = self.trader.getProfit()
           print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
           self.sumwin = new_profits
 
@@ -136,9 +135,10 @@ if __name__ == "__main__":
     sim = len(sys.argv) == 2 and str(sys.argv[1]) == "--sim"
 
     nt = NightTrader(simulation=sim)
-    while True:
+    # schedule.every(15).seconds.do(nt.run)
+    while(True):
         nt.run()
-        if not sim:
-            time.sleep(15)
+        # schedule.run_pending() 
+        time.sleep(15) 
 
-    nt.logout()
+    # nt.logout()
