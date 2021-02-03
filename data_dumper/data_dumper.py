@@ -1,6 +1,7 @@
 import robin_stocks as r
 import pandas as pd
 import time
+import sys
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
 
@@ -29,7 +30,7 @@ def getHistorical(crypto_id) -> dict:
 
 def appendToFile(filePath: str, crypto_id: str):
     raw_data = getHistorical(crypto_id)
-    print("Dumping full data...")
+    print(f"Dumping full data for {crypto_id}...")
     
     full_df = pd.DataFrame(raw_data)[
         ["begins_at", "open_price", "close_price", "high_price", "low_price", "volume"]
@@ -41,7 +42,7 @@ def appendToFile(filePath: str, crypto_id: str):
         index=False,
         mode="a",
     )
-    print("Dump complete")
+    print(f"{crypto_id} Dump complete")
 
 
 if __name__ == "__main__":
@@ -50,10 +51,12 @@ if __name__ == "__main__":
         "---------------------------------- Dumping RobinHood Api Data ----------------------------------"
     )
 
+    cred_dir = str(sys.argv[1])
+    output_dir = str(sys.argv[2])
     # Load and read username and password env files
-    usernameFile = open("D:/Documents/Projects/night-trader/env/username", "r")
+    usernameFile = open(f"{cred_dir}/username", "r")
     username = usernameFile.read()
-    passwordFile = open("D:/Documents/Projects/night-trader/env/password", "r")
+    passwordFile = open(f"{output_dir}/password", "r")
     password = passwordFile.read()
 
     print("Logging in...", end="")
@@ -66,21 +69,9 @@ if __name__ == "__main__":
     print("Making Api call")
 
     # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
-    raw_data = getHistorical(ETH_ID)
-    df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]
-    df = df.rename(columns={"begins_at": "time", "open_price": "price"})
 
-    print("Dumping...")
-    df.to_csv(
-        "D:/Documents/Projects/night-trader/data/dump.csv",
-        header=False,
-        index=False,
-        mode="a",
-    )
-    print("Dump complete")
-
-    appendToFile("D:/Documents/Projects/night-trader/data/ETH.csv", SYMBOLS["ETH"])
-    appendToFile("D:/Documents/Projects/night-trader/data/LTC.csv", SYMBOLS["LTC"])
-    appendToFile("D:/Documents/Projects/night-trader/data/BCH.csv", SYMBOLS["BCH"])
-    appendToFile("D:/Documents/Projects/night-trader/data/ETC.csv", SYMBOLS["ETC"])
-    appendToFile("D:/Documents/Projects/night-trader/data/BTC.csv", SYMBOLS["BTC"])
+    appendToFile(f"{output_dir}/ETH.csv", SYMBOLS["ETH"])
+    appendToFile(f"{output_dir}/LTC.csv", SYMBOLS["LTC"])
+    appendToFile(f"{output_dir}/BCH.csv", SYMBOLS["BCH"])
+    appendToFile(f"{output_dir}/ETC.csv", SYMBOLS["ETC"])
+    appendToFile(f"{output_dir}/BTC.csv", SYMBOLS["BTC"])
