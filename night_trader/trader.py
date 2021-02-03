@@ -57,7 +57,7 @@ class Trader:
       if t.fill_price:
         returns += t.fill_price
 
-    return returns - cost
+    return (returns - cost) * self.EXCH_QUANT
 
   def buy(self, max_buy_price):
       self.cancelOpenSells()

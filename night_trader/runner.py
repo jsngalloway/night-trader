@@ -64,7 +64,7 @@ class NightTrader:
         if not self.simulation_mode:
             self.dataManager.updateBulk()
         
-        self.trader = SimTrader(self.CRYPTO, 0.025)
+        self.trader = Trader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
