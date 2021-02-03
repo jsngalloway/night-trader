@@ -24,7 +24,7 @@ class BacDaddy:
     dataManager: LstmDataManager
     
     bacd_params = (12, 26, 9)
-    period_multiplier = 16  #175  # 25 or 111
+    period_multiplier = 49  #175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer
@@ -41,7 +41,7 @@ class BacDaddy:
         exp1 = data[["price"]].ewm(span=self.bacd_params[0] * self.period_multiplier, adjust=False).mean()
         exp2 = data[["price"]].ewm(span=self.bacd_params[1] * self.period_multiplier, adjust=False).mean()
         macd = exp1 - exp2
-        signal = macd.ewm(span=self.bacd_params[2] * self.period_multiplier, adjust=False).mean()
+        signal = macd.ewm(span=self.bacd_params[2] * round(1+self.period_multiplier*0.25), adjust=False).mean()
 
         data = data.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
         macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
