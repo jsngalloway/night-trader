@@ -5,20 +5,15 @@ import logging
 import matplotlib.pyplot as plt
 
 log = logging.getLogger(__name__)
-
-# TODO REMOVE
-plt.style.use('seaborn-darkgrid')
-plt.ion()
-fig, axs = plt.subplots(2, figsize=(12.2, 7.5), sharex=True)
-plt.xticks(rotation=45)
-# Set common labels
-axs[0].set_xlabel('Time')
-axs[1].set_xlabel('Time')
-axs[0].set_ylabel('ETH in USD')
-plt.tight_layout()
-# ############################
-
 class BacDaddy:
+
+    # TODO REMOVE
+    plt.style.use('seaborn-darkgrid')
+    plt.ion()
+    fig = None
+    axs = None
+    # ############################
+
     prices: pd.DataFrame = pd.DataFrame({"price": []})
     dataManager: LstmDataManager
     
@@ -30,6 +25,8 @@ class BacDaddy:
         log.info("Bac daddy predictor initialized")
         log.info(f"Parameters: {self.bacd_params}")
         log.info(f"Period multiplier: {self.period_multiplier}")
+
+        self.fig, self.axs = plt.subplots(2, figsize=(12.2, 7.5), sharex=True, tight_layout=True)
 
     def predict(self, latest_price):
         data = self.dataManager.getData(tail=5000, subsampling=1)
@@ -46,17 +43,17 @@ class BacDaddy:
         macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
         signal = signal.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
 
-        
         # TODO Remove plotting
         plt.rcParams['timezone'] = data.index.tz.zone
-        axs[0].clear()
-        axs[1].clear()
-        axs[0].plot(data.price.tail(1000), label='Price', linewidth=2)
-        axs[1].plot(macd.tail(1000), label='ETH MACD', color = 'red', linewidth=1)
-        axs[1].plot(signal.tail(1000), label='Signal Line', color='blue', linewidth=1)
-        axs[0].grid(b=True, which='both', axis='both')
-        plt.draw()
-        plt.pause(.001)
+        self.axs[0].clear()
+        self.axs[0].grid(b=True, which='both', axis='both')
+        self.axs[0].plot(data.price.tail(1000), label='Price', linewidth=2)
+        self.axs[0].annotate(str(f"${data.price.iat[-1]:.2f}"), (data.index[-1], data.price.iat[-1]+5))
+        self.axs[1].clear()
+        self.axs[1].plot(macd.tail(1000), label='ETH MACD', color = 'red', linewidth=1)
+        self.axs[1].plot(signal.tail(1000), label='Signal Line', color='blue', linewidth=1)
+        self.axs[1].legend()
+        plt.pause(.000001)
         # --------------------------------------
 
         log.debug(f"Using data ({data.time.iat[0]} {data.time.iat[-1]} : {len(data)})macd is at: {macd.price.iat[-1]} signal is at: {signal.price.iat[-1]}")
