@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # Load and read username and password env files
     usernameFile = open(f"{cred_dir}/username", "r")
     username = usernameFile.read()
-    passwordFile = open(f"{output_dir}/password", "r")
+    passwordFile = open(f"{cred_dir}/password", "r")
     password = passwordFile.read()
 
     print("Logging in...", end="")
