@@ -46,11 +46,15 @@ class Trader:
     cost = 0
     returns = 0
     for t in self.buys:
-      if (not t.open) and t.fill_price:
+      if t.open:
+        return None
+      if t.fill_price:
         cost += t.fill_price
 
     for t in self.sells:
-      if (not t.open) and t.fill_price:
+      if t.open:
+        return None
+      if t.fill_price:
         returns += t.fill_price
 
     return returns - cost

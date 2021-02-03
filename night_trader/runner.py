@@ -1,4 +1,5 @@
 from predictors.bac_daddy import BacDaddy
+from predictors.mac_daddy import MacDaddy
 import robin_stocks as r
 import time
 import schedule
@@ -66,7 +67,8 @@ class NightTrader:
         self.trader = Trader(self.CRYPTO, 0.025)
 
         # self.predictor = Lstm(self.dataManager, 3)
-        self.predictor = BacDaddy(self.dataManager)
+        # self.predictor = BacDaddy(self.dataManager)
+        self.predictor = MacDaddy(self.dataManager)
 
     def logout(self):
         # log out of robinhood at the end of the session
@@ -124,7 +126,8 @@ class NightTrader:
                     # log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                 self.bought = (False, 0)
 
-        if (not self.bought[0]) and self.sumwin != self.trader.getProfit():
+
+        if (not self.bought[0]) and self.trader.getProfit() and self.sumwin != self.trader.getProfit():
           new_profits = self.trader.getProfit()
           print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
           self.sumwin = new_profits

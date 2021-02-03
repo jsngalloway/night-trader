@@ -38,11 +38,11 @@ class MacDaddy:
         latest_price = data.price.iloc[-1]
 
         # Smooth out data
-        data["price"] = data.price.ewm(span=6, adjust=True).mean()
+        smooth = data[["price"]].ewm(span=6, adjust=True).mean()
 
         # Calculate MACD and signal lines
-        exp1 = data[["price"]].ewm(span=self.macd_params[0] * self.period_multiplier, adjust=False).mean()
-        exp2 = data[["price"]].ewm(span=self.macd_params[1] * self.period_multiplier, adjust=False).mean()
+        exp1 = smooth[["price"]].ewm(span=self.macd_params[0] * self.period_multiplier, adjust=False).mean()
+        exp2 = smooth[["price"]].ewm(span=self.macd_params[1] * self.period_multiplier, adjust=False).mean()
         macd = exp1 - exp2
         signal = macd.ewm(span=self.macd_params[2] * self.period_multiplier, adjust=False).mean()
 
