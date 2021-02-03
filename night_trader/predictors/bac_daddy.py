@@ -19,7 +19,6 @@ plt.tight_layout()
 # ############################
 
 class BacDaddy:
-
     prices: pd.DataFrame = pd.DataFrame({"price": []})
     dataManager: LstmDataManager
     

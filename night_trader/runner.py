@@ -67,8 +67,8 @@ class NightTrader:
         self.trader = Trader(self.CRYPTO, 0.025)
 
         # self.predictor = Lstm(self.dataManager, 3)
-        # self.predictor = BacDaddy(self.dataManager)
-        self.predictor = MacDaddy(self.dataManager)
+        self.predictor = BacDaddy(self.dataManager)
+        # self.predictor = MacDaddy(self.dataManager)
 
     def logout(self):
         # log out of robinhood at the end of the session
@@ -129,7 +129,7 @@ class NightTrader:
 
         if (not self.bought[0]) and self.trader.getProfit() and self.sumwin != self.trader.getProfit():
           new_profits = self.trader.getProfit()
-          print(f"Profit update: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
+          log.info(f"Current profits: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
           self.sumwin = new_profits
 
 
