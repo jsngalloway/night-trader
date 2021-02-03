@@ -138,10 +138,10 @@ if __name__ == "__main__":
     sim = len(sys.argv) == 2 and str(sys.argv[1]) == "--sim"
 
     nt = NightTrader(simulation=sim)
-    schedule.every(15).seconds.do(nt.run)
+    # schedule.every(15).seconds.do(nt.run)
     while(True):
         nt.run()
-        schedule.run_pending() 
+        # schedule.run_pending() 
         # time.sleep(15) 
 
     # nt.logout()
