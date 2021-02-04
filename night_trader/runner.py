@@ -4,7 +4,7 @@ import robin_stocks as r
 import time
 import schedule
 from predictors.lstm_predictor import Lstm
-from trader import Trader
+from trader.trader import Trader
 from sim_trader import SimTrader
 from predictors.lstm.lstm_data_manager import LstmDataManager
 import sys
@@ -64,7 +64,7 @@ class NightTrader:
         if not self.simulation_mode:
             self.dataManager.updateBulk()
 
-        self.trader = Trader(self.CRYPTO, 0.05)
+        self.trader = SimTrader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
@@ -148,6 +148,7 @@ if __name__ == "__main__":
     while True:
         nt.run()
         # schedule.run_pending()
-        time.sleep(15)
+        if not sim:
+          time.sleep( 15)
 
     # nt.logout()
