@@ -148,6 +148,6 @@ if __name__ == "__main__":
         nt.run()
         # schedule.run_pending()
         if not sim:
-          time.sleep( 15)
+            time.sleep(15)
 
     # nt.logout()
