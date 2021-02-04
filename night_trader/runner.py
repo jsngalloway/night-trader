@@ -23,7 +23,6 @@ log = logging.getLogger(__name__)
 
 class NightTrader:
 
-    login: dict
     predictor = None
     bought = (False, 0.0)
     sumwin = 0
@@ -52,8 +51,8 @@ class NightTrader:
             password = passwordFile.read()
 
             log.info("Authenticating with robinhood...")
-            self.login = r.login(username, password)
-            if not self.login["access_token"]:
+            login = r.login(username, password)
+            if not login["access_token"]:
                 log.error("Unable to authenticate, exiting.")
                 r.authentication.logout()
                 exit()
@@ -64,7 +63,7 @@ class NightTrader:
         if not self.simulation_mode:
             self.dataManager.updateBulk()
 
-        self.trader = SimTrader(self.CRYPTO, 0.05)
+        self.trader = Trader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
         self.predictor = BacDaddy(self.dataManager)
