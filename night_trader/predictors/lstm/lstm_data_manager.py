@@ -8,6 +8,7 @@ ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
 
 log = logging.getLogger(__name__)
 
+
 class LstmDataManager:
 
     data: pd.DataFrame = None
@@ -24,50 +25,60 @@ class LstmDataManager:
         # old_data.columns = ["time", "price"]
         self.data = self.averageAndRename(old_data)
 
-
-
         # self.data = old_data
-        log.info(f"Load data complete: {len(self.data)} rows loaded. Latest row time: {self.data.time.iat[-1]}")
+        log.info(
+            f"Load data complete: {len(self.data)} rows loaded. Latest row time: {self.data.time.iat[-1]}"
+        )
 
         if simulation_mode:
-            self.end_index = 500 #start with 500 samples
+            self.end_index = 500  # start with 500 samples
 
     @staticmethod
     def averageAndRename(begin_high_low_dataFrame: pd.DataFrame):
         new_dataFrame = pd.DataFrame()
-        new_dataFrame['price'] = begin_high_low_dataFrame[['high_price','low_price']].mean(axis=1)
-        new_dataFrame['time'] = begin_high_low_dataFrame['begins_at']
-        new_dataFrame = new_dataFrame.set_index(pd.DatetimeIndex(begin_high_low_dataFrame['begins_at'].values))
+        new_dataFrame["price"] = begin_high_low_dataFrame[
+            ["high_price", "low_price"]
+        ].mean(axis=1)
+        new_dataFrame["time"] = begin_high_low_dataFrame["begins_at"]
+        new_dataFrame = new_dataFrame.set_index(
+            pd.DatetimeIndex(begin_high_low_dataFrame["begins_at"].values)
+        )
         return new_dataFrame
 
     @staticmethod
     def appendFromApi(current_list):
-        
         def getHourlyHistory() -> dict:
             url = r.urls.crypto_historical(ETH_ID)
             payload = {"interval": "15second", "span": "hour", "bounds": "24_7"}
-            data = r.helper.request_get(url, "regular", payload)
+
+            data = None
+            try:
+                data = r.helper.request_get(url, "regular", payload)
+            except:
+                log.error("Request call for Crypto historical data failed")
 
             if (
                 (not data)
                 or (not type(data) is dict)
                 or (data.get("data_points") == None)
             ):
-                log.error(f"Invalid response, trying again in 60 seconds.")
+                log.error(
+                    f"Unable to fetch data from robinhood: Trying again in 60 seconds."
+                )
                 time.sleep(60)
                 return getHourlyHistory()
-
-            return data["data_points"]
+            else:
+                return data["data_points"]
 
         # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
         log.info("Getting past hourly data...")
         raw_data = getHourlyHistory()
 
         data = pd.DataFrame(raw_data)
-        data["high_price"] = pd.to_numeric(data['high_price'])
-        data["low_price"] = pd.to_numeric(data['low_price'])
-        data["time"] = pd.to_datetime(data['begins_at'])
-        
+        data["high_price"] = pd.to_numeric(data["high_price"])
+        data["low_price"] = pd.to_numeric(data["low_price"])
+        data["time"] = pd.to_datetime(data["begins_at"])
+
         df = LstmDataManager.averageAndRename(data)
         # df = pd.DataFrame(raw_data)[["begins_at", "open_price"]]
         # df = df.rename(columns={"begins_at": "time", "open_price": "price"})
@@ -85,31 +96,40 @@ class LstmDataManager:
     def updateBulk(self):
         self.data = self.appendFromApi(self.data)
         log.info("Bulk update complete")
-        # print(self.data.head(250))
-        # print(self.data.tail(250))
 
     def getQuoteAndAddToData(self) -> dict:
         def getDataNow() -> dict:
+            # Instead of using the commented out method below, place the request outselves which bypasses the finicky API info page call
             # return r.crypto.get_crypto_quote("ETH")[["ask_price", "mark_price", "bid_price"]]
             url = ("https://api.robinhood.com/marketdata/forex/quotes/{0}/").format(
                 ETH_ID
             )
-            data = r.helper.request_get(
-                url, dataType="regular", payload=None, jsonify_data=True
-            )
-            time_string = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
-            data["time"] =  time_string
+
+            data = None
+            try:
+                data = r.helper.request_get(
+                    url, dataType="regular", payload=None, jsonify_data=True
+                )
+            except:
+                log.error("Request call for price update failed.")
 
             if (data == None) or (not type(data) is dict):
-              log.error("Unable to fetch data from robinhood")
-              log.error(data)
-              return None
-
-            # print(self.data.tail(5))
-
-            return data
+                log.error(
+                    "Unable to fetch data from robinhood: Data returned not valid"
+                )
+                log.error(data)
+                return None
+            else:
+                time_string = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
+                data["time"] = time_string
+                return data
 
         new_data_dict = getDataNow()
+
+        # If the request failed, pass along the failure
+        if new_data_dict == None:
+            return None
+
         price = float(new_data_dict["mark_price"])
         time_string = new_data_dict["time"]
         self.data = self.data.append(

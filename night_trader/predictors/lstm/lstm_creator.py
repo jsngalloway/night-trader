@@ -15,7 +15,7 @@ def scaleData(
         # perform partial fits on all datasets
         from_csv = pd.read_csv(path)
         new_df = pd.DataFrame()
-        new_df["price"] = from_csv[["high_price","low_price"]].mean(axis=1)
+        new_df["price"] = from_csv[["high_price", "low_price"]].mean(axis=1)
         datasets.append(new_df[::sub_sampling])
         scaler = scaler.partial_fit(datasets[-1])
     for i in range(len(datasets)):

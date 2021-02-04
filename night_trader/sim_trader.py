@@ -12,25 +12,24 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class SimTrader:
 
-  profits: float
-  pending: float
+    profits: float
+    pending: float
 
-  def __init__(self, symbol: str, exch_quantity: float):
+    def __init__(self, symbol: str, exch_quantity: float):
 
-    self.profits = 0
-    self.pending = 0
+        self.profits = 0
+        self.pending = 0
 
-  
-  def getProfit(self):
-    return self.profits
+    def getProfit(self):
+        return self.profits
 
-  def buy(self, max_buy_price):
-      log.info(f"Sim BUY at {max_buy_price}")
-      self.pending = max_buy_price
+    def buy(self, max_buy_price):
+        log.info(f"Sim BUY at {max_buy_price}")
+        self.pending = max_buy_price
 
-  def sell(self, min_sell_price):
-      log.info(f"Sim SELL at {min_sell_price}")
-      self.profits += min_sell_price - self.pending
-
+    def sell(self, min_sell_price):
+        log.info(f"Sim SELL at {min_sell_price}")
+        self.profits += min_sell_price - self.pending
