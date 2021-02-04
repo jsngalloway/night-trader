@@ -1,3 +1,3 @@
-eval "$(conda shell.bash hook)"
-conda activate lstm
-python /home/galloway.jesse/Documents/github/night-trader/data_dumper/data_dumper.py /home/galloway.jesse/Documents/github/night-trader/env /home/galloway.jesse/Documents/github/night-trader/data
+# eval "$(conda shell.bash hook)"
+# conda activate lstm
+python3 /home/pi/night-trader/data_dumper/data_dumper.py /home/pi/night-trader/env /home/pi/night-trader/data
