@@ -15,13 +15,11 @@ import threading
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(name)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler("debug.log"), logging.StreamHandler()],
 )
 
 log = logging.getLogger(__name__)
+
 
 class NightTrader:
 
@@ -42,7 +40,9 @@ class NightTrader:
 
         self.simulation_mode = simulation
         if self.simulation_mode:
-            log.warning("RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE")
+            log.warning(
+                "RUNNING IN SIMULATION MODE. OLD DATA WILL BE USED AND NO TRADES WILL EXECUTE"
+            )
         else:
             # Load and read username and password env files
             log.info("Loading username and password from files")
@@ -63,7 +63,7 @@ class NightTrader:
 
         if not self.simulation_mode:
             self.dataManager.updateBulk()
-        
+
         self.trader = Trader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
@@ -79,26 +79,27 @@ class NightTrader:
             self.dataManager.incrementEndIndex()
 
         latest_data = self.updateDataManager()
-        
+
         if latest_data == None:
-          log.error("No data was received, skipping prediction iteration")
-          return
+            log.error("No data was received, skipping prediction iteration")
+            return
         else:
-          self.run_predictor(latest_data)
+            self.run_predictor(latest_data)
 
     def updateDataManager(self) -> dict:
         if self.simulation_mode:
             data = self.dataManager.getData(tail=1, subsampling=1)
             price = data["price"].iloc[-1]
-            time = str(data[['time']].iloc[-1, 0])
+            time = str(data[["time"]].iloc[-1, 0])
             latest_data = {
                 "mark_price": price,
                 "ask_price": price + 1,
                 "bid_price": price - 1,
-                "time": time
+                "time": time,
             }
             return latest_data
         else:
+            # Watch out, this can return None if the request failed (3:30 bug)
             data = self.dataManager.getQuoteAndAddToData()
             return data
 
@@ -121,16 +122,21 @@ class NightTrader:
                 # sell_success = True
                 # sell_price = sellable_price
                 # if sell_success:
-                    # profit = sell_price - self.bought[1]
-                    # self.sumwin = self.sumwin + sell_price - self.bought[1]
-                    # log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
+                # profit = sell_price - self.bought[1]
+                # self.sumwin = self.sumwin + sell_price - self.bought[1]
+                # log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
                 self.bought = (False, 0)
 
-
-        if (not self.bought[0]) and self.trader.getProfit() and self.sumwin != self.trader.getProfit():
-          new_profits = self.trader.getProfit()
-          log.info(f"Current profits: {(new_profits - self.sumwin):+.2f} Total: {new_profits}")
-          self.sumwin = new_profits
+        if (
+            (not self.bought[0])
+            and self.trader.getProfit()
+            and self.sumwin != self.trader.getProfit()
+        ):
+            new_profits = self.trader.getProfit()
+            log.info(
+                f"Current profits: {(new_profits - self.sumwin):+.2f} Total: {new_profits}"
+            )
+            self.sumwin = new_profits
 
 
 if __name__ == "__main__":
@@ -139,9 +145,9 @@ if __name__ == "__main__":
 
     nt = NightTrader(simulation=sim)
     # schedule.every(15).seconds.do(nt.run)
-    while(True):
+    while True:
         nt.run()
-        # schedule.run_pending() 
-        time.sleep(15) 
+        # schedule.run_pending()
+        time.sleep(15)
 
     # nt.logout()

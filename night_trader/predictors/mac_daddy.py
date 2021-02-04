@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 
 log = logging.getLogger(__name__)
 
+
 class MacDaddy:
 
     # TODO REMOVE
-    plt.style.use('seaborn-darkgrid')
+    plt.style.use("seaborn-darkgrid")
     plt.ion()
     fig = None
     axs = None
@@ -17,9 +18,9 @@ class MacDaddy:
 
     prices: pd.DataFrame = pd.DataFrame({"price": []})
     dataManager: LstmDataManager
-    
-    macd_params = (20*4, 30*4, 11)
-    period_multiplier = 1  #175  # 25 or 111
+
+    macd_params = (20 * 4, 30 * 4, 11)
+    period_multiplier = 1  # 175  # 25 or 111
 
     def __init__(self, dataSourcer: LstmDataManager):
         self.dataManager = dataSourcer
@@ -27,7 +28,9 @@ class MacDaddy:
         log.info(f"Parameters: {self.macd_params}")
         log.info(f"Period multiplier: {self.period_multiplier}")
 
-        self.fig, self.axs = plt.subplots(2, figsize=(12.2, 7.5), sharex=True, tight_layout=True)
+        self.fig, self.axs = plt.subplots(
+            2, figsize=(12.2, 7.5), sharex=True, tight_layout=True
+        )
 
     def predict(self, latest_price):
         data = self.dataManager.getData(tail=5000, subsampling=1)
@@ -38,30 +41,51 @@ class MacDaddy:
         smooth = data[["price"]].ewm(span=6, adjust=True).mean()
 
         # Calculate MACD and signal lines
-        exp1 = smooth[["price"]].ewm(span=self.macd_params[0] * self.period_multiplier, adjust=False).mean()
-        exp2 = smooth[["price"]].ewm(span=self.macd_params[1] * self.period_multiplier, adjust=False).mean()
+        exp1 = (
+            smooth[["price"]]
+            .ewm(span=self.macd_params[0] * self.period_multiplier, adjust=False)
+            .mean()
+        )
+        exp2 = (
+            smooth[["price"]]
+            .ewm(span=self.macd_params[1] * self.period_multiplier, adjust=False)
+            .mean()
+        )
         macd = exp1 - exp2
-        signal = macd.ewm(span=self.macd_params[2] * self.period_multiplier, adjust=False).mean()
+        signal = macd.ewm(
+            span=self.macd_params[2] * self.period_multiplier, adjust=False
+        ).mean()
 
-        data = data.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
-        macd = macd.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
-        signal = signal.set_index(pd.DatetimeIndex(pd.to_datetime(data['time'].values, utc=True))).tz_convert(tz='US/Eastern')
+        data = data.set_index(
+            pd.DatetimeIndex(pd.to_datetime(data["time"].values, utc=True))
+        ).tz_convert(tz="US/Eastern")
+        macd = macd.set_index(
+            pd.DatetimeIndex(pd.to_datetime(data["time"].values, utc=True))
+        ).tz_convert(tz="US/Eastern")
+        signal = signal.set_index(
+            pd.DatetimeIndex(pd.to_datetime(data["time"].values, utc=True))
+        ).tz_convert(tz="US/Eastern")
 
-        
         # TODO Remove plotting
-        plt.rcParams['timezone'] = data.index.tz.zone
+        plt.rcParams["timezone"] = data.index.tz.zone
         self.axs[0].clear()
-        self.axs[0].grid(b=True, which='both', axis='both')
-        self.axs[0].plot(data.price.tail(1000), label='Price', linewidth=2)
-        self.axs[0].annotate(str(f"${data.price.iat[-1]:.2f}"), (data.index[-1], data.price.iat[-1]+5))
+        self.axs[0].grid(b=True, which="both", axis="both")
+        self.axs[0].plot(data.price.tail(1000), label="Price", linewidth=2)
+        self.axs[0].annotate(
+            str(f"${data.price.iat[-1]:.2f}"), (data.index[-1], data.price.iat[-1] + 5)
+        )
         self.axs[1].clear()
-        self.axs[1].plot(macd.tail(1000), label='ETH MACD', color = 'red', linewidth=1)
-        self.axs[1].plot(signal.tail(1000), label='Signal Line', color='blue', linewidth=1)
+        self.axs[1].plot(macd.tail(1000), label="ETH MACD", color="red", linewidth=1)
+        self.axs[1].plot(
+            signal.tail(1000), label="Signal Line", color="blue", linewidth=1
+        )
         self.axs[1].legend()
-        plt.pause(.000001)
+        plt.pause(0.000001)
         # --------------------------------------
 
-        log.debug(f"Using data ({data.time.iat[0]} {data.time.iat[-1]} : {len(data)})macd is at: {macd.price.iat[-1]} signal is at: {signal.price.iat[-1]}")
+        log.debug(
+            f"Using data ({data.time.iat[0]} {data.time.iat[-1]} : {len(data)})macd is at: {macd.price.iat[-1]} signal is at: {signal.price.iat[-1]}"
+        )
 
         # using conventional logic...
         if (macd.price.iat[-1] > signal.price.iat[-1]) and (

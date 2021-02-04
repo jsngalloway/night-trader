@@ -9,6 +9,7 @@ from predictors.lstm.lstm_data_manager import LstmDataManager
 
 log = logging.getLogger(__name__)
 
+
 class Lstm:
 
     prices: pd.DataFrame = pd.DataFrame({"price": []})
@@ -84,12 +85,16 @@ class Lstm:
         action = None
 
         if (next_value - self.last_predicted_value) > 1.0:
-            log.info(f"Got buy signal, predicted change is ({next_value-self.last_predicted_value:+.2f})")
+            log.info(
+                f"Got buy signal, predicted change is ({next_value-self.last_predicted_value:+.2f})"
+            )
             action = "buy"
         else:
             action = "sell"
 
-        log.info(f"Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}")
+        log.info(
+            f"Real: [Last/Now: ${self.last_value:.2f}, ${current_value:.2f} ({current_value-self.last_value:+.2f})] Model: [Last/Now/Next: ${self.last_last_predicted_value:.2f}, ${self.last_predicted_value:.2f}, ${next_value:.2f} ({next_value-self.last_predicted_value:+.2f})] Error: {current_projected_error:4.0f}% Action: {action}"
+        )
         self.last_value = current_value
         self.last_last_predicted_value = self.last_predicted_value
         self.last_predicted_value = next_value
