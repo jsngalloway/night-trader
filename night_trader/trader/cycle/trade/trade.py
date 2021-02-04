@@ -42,7 +42,7 @@ class Trade:
         self.open = False
         self.fill_price = fill_price
         log.info(
-            f"Trade Closed. Type: {self.type}, Id: {self.id}, Filled at: {self.fill_price}"
+            f"Trade Closed. Type: {self.type}, Id: {self.id}, {self.quantity} Filled at: {self.fill_price:.4f} for: ${(self.fill_price * self.quantity):.4f}"
         )
 
     def checkStatus(self):

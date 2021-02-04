@@ -27,7 +27,8 @@ class Trader:
     def getProfit(self):
       profit = 0
       for c in self.cycles:
-        c.checkAndComplete() # Forces cycles to be updated with sales
+        if not c.complete:
+          c.checkAndComplete() # Forces cycles to be updated with sales
         profit += c.profit
       return profit
 

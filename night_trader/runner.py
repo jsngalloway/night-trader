@@ -133,7 +133,7 @@ class NightTrader:
         ):
             new_profits = self.trader.getProfit()
             log.info(
-                f"Current profits: {(new_profits - self.sumwin):+.2f} Total: {new_profits}"
+                f"Current profits: {(new_profits - self.sumwin):+.2f} Total: {new_profits} ({len(self.trader.cycles)} cycles)"
             )
             self.sumwin = new_profits
 
