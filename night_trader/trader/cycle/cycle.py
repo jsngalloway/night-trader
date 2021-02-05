@@ -22,7 +22,7 @@ class Cycle:
         self.sell = Sell(sell_id, sell_price, quantity)
 
     def checkAndComplete(self):
-        if self.sell and not self.sell.open:
+        if not self.complete and self.sell and not self.sell.open:
             self.complete = True
             if self.sell.fill_price:
                 self.profit = (self.sell.fill_price * self.sell.quantity) - (
