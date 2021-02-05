@@ -1,6 +1,7 @@
 import robin_stocks as r
 import pandas as pd
 import time
+from datetime import datetime
 import sys
 
 ETH_ID = "76637d50-c702-4ed1-bcb5-5b0732a81f48"
@@ -30,7 +31,9 @@ def getHistorical(crypto_id) -> dict:
 
 def appendToFile(filePath: str, crypto_symbol: str):
     crypto_id = SYMBOLS[crypto_symbol]
-    print("------ Beginning {crypto_symbol} dump ------")
+    print("")
+    print(f"------ Beginning {crypto_symbol} dump ------")
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     print("Making API call...", end="")
     raw_data = getHistorical(crypto_id)
     print("done")
@@ -57,7 +60,6 @@ def appendToFile(filePath: str, crypto_symbol: str):
         mode="a",
     )
     print("done")
-
 
 if __name__ == "__main__":
     # execute only if run as a script
