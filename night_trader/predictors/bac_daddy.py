@@ -11,7 +11,7 @@ class BacDaddy:
 
     # TODO REMOVE
     plt.style.use("seaborn-darkgrid")
-    plt.ion()
+    plt.ioff()
     fig = None
     axs = None
     # ############################
