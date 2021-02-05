@@ -35,14 +35,15 @@ def appendToFile(filePath: str, crypto_id: str):
     full_df = pd.DataFrame(raw_data)[
         ["begins_at", "open_price", "close_price", "high_price", "low_price", "volume"]
     ]
-    # full_df.index = pd.DatetimeIndex(pd.to_datetime(full_df["begins_at"].values, utc=True))
+    full_df.index = pd.DatetimeIndex(pd.to_datetime(full_df["begins_at"].values, utc=True))
 
     from_file = pd.read_csv(filePath)
 
+    from_file.index = pd.DatetimeIndex(pd.to_datetime(from_file["begins_at"].values, utc=True))
+    
     print("Before dropping dupes we have", len(full_df))
-    full_df = full_df[~full_df.isin(from_file)].dropna()
+    full_df = full_df[~full_df.index.isin(from_file.index)].dropna()
     print("After dropping dupes we now have", len(full_df))
-    # from_file.index = pd.DatetimeIndex(pd.to_datetime(from_file["begins_at"].values, utc=True))
 
     # mask = ~full_df.index.isin(from_file)
     # result = full_df.loc[mask]
