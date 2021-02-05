@@ -33,7 +33,7 @@ class Trade:
         self.open = True
         self.fill_price = None
         log.info(
-            f"Trade Opened. Type: {self.type}, Id: {self.id}, Limit price: {self.price}"
+            f"Trade Opened. Type: {self.type} {self.quantity}, Limit: {self.type}: {self.price} (${self.price * self.quantity:.2f})"
         )
         # Check if order has been completed in 1 seconds
         threading.Timer(1.0, self.checkStatus).start()
@@ -42,7 +42,7 @@ class Trade:
         self.open = False
         self.fill_price = fill_price
         log.info(
-            f"Trade Closed. Type: {self.type}, Id: {self.id}, {self.quantity} Filled at: {self.fill_price:.4f} for: ${(self.fill_price * self.quantity):.4f}"
+            f"Trade Closed. Type: {self.type} {self.quantity}, Filled at: {self.fill_price:.4f} (${(self.fill_price * self.quantity):.2f})"
         )
 
     def checkStatus(self):
@@ -55,10 +55,10 @@ class Trade:
                 self.close(None)
             else:
                 # Schedule another check in 5 seconds
-                threading.Timer(5.0, self.checkStatus).start()
+                threading.Timer(3.0, self.checkStatus).start()
         else:
             # Bad response from robinhood, try again
-            threading.Timer(5.0, self.checkStatus).start()
+            threading.Timer(3.0, self.checkStatus).start()
 
     def cancel(self):
         log.warn(f"Cancelling {self.type} order {self.id}")
