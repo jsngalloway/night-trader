@@ -28,9 +28,14 @@ def getHistorical(crypto_id) -> dict:
     return data["data_points"]
 
 
-def appendToFile(filePath: str, crypto_id: str):
+def appendToFile(filePath: str, crypto_symbol: str):
+    crypto_id = SYMBOLS[crypto_symbol]
+    print("------ Beginning {crypto_symbol} dump ------")
+    print("Making API call...", end="")
     raw_data = getHistorical(crypto_id)
-    print(f"Dumping full data for {crypto_id}...")
+    print("done")
+    
+    print(f"Reading data and removing dupes...", end="")
     
     full_df = pd.DataFrame(raw_data)[
         ["begins_at", "open_price", "close_price", "high_price", "low_price", "volume"]
@@ -41,21 +46,17 @@ def appendToFile(filePath: str, crypto_id: str):
 
     from_file.index = pd.DatetimeIndex(pd.to_datetime(from_file["begins_at"].values, utc=True))
     
-    print("Before dropping dupes we have", len(full_df))
     full_df = full_df[~full_df.index.isin(from_file.index)].dropna()
-    print("After dropping dupes we now have", len(full_df))
+    print("done")
 
-    # mask = ~full_df.index.isin(from_file)
-    # result = full_df.loc[mask]
-    # print(result)
-
+    print(f"Writing ({len(full_df)}) new values to {filePath}...", end="")
     full_df.to_csv(
         filePath,
         header=False,
         index=False,
         mode="a",
     )
-    print(f"{crypto_id} Dump complete")
+    print("done")
 
 
 if __name__ == "__main__":
@@ -79,12 +80,12 @@ if __name__ == "__main__":
         print("system exiting.")
         r.authentication.logout()
         exit()
-    print("Making Api call")
+    print("done")
 
     # raw_data = r.crypto.get_crypto_historicals("ETH", interval='15second', span='hour', bounds='24_7', info=None)
-
-    appendToFile(f"{output_dir}/ETH.csv", SYMBOLS["ETH"])
-    appendToFile(f"{output_dir}/LTC.csv", SYMBOLS["LTC"])
-    appendToFile(f"{output_dir}/BCH.csv", SYMBOLS["BCH"])
-    appendToFile(f"{output_dir}/ETC.csv", SYMBOLS["ETC"])
-    appendToFile(f"{output_dir}/BTC.csv", SYMBOLS["BTC"])
+    print("Beginning call and appends...")
+    appendToFile(f"{output_dir}/ETH.csv", "ETH")
+    appendToFile(f"{output_dir}/LTC.csv", "LTC")
+    appendToFile(f"{output_dir}/BCH.csv", "BCH")
+    appendToFile(f"{output_dir}/ETC.csv", "ETC")
+    appendToFile(f"{output_dir}/BTC.csv", "BTC")
