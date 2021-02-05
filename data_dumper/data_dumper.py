@@ -39,10 +39,9 @@ def appendToFile(filePath: str, crypto_id: str):
 
     from_file = pd.read_csv(filePath)
 
-    dupes = from_file['begins_at'].isin(full_df['begins_at'])
-    print(f"Identified {len(dupes)} duplicates, dropping")
-    full_df = full_df.drop(full_df[dupes].index, inplace = True)
-    print(f"Now we have {len(full_df)} new rows to add")
+    print("Before dropping dupes we have", len(full_df))
+    full_df = full_df[~full_df.isin(from_file)].dropna()
+    print("After dropping dupes we now have", len(full_df))
     # from_file.index = pd.DatetimeIndex(pd.to_datetime(from_file["begins_at"].values, utc=True))
 
     # mask = ~full_df.index.isin(from_file)
