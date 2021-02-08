@@ -28,7 +28,7 @@ class Cycle:
                 self.profit = (self.sell.fill_price * self.sell.quantity) - (
                     self.buy.fill_price * self.buy.quantity
                 )
-                log.info(f"Completed cycle with profit of: ${self.profit:+.4f} ({(self.profit/self.buy.fill_price*self.buy.quantity*100):+.2f}%)")
+                log.info(f"Completed cycle with profit of: ${self.profit:+.4f} ({((self.profit/(self.buy.fill_price*self.buy.quantity))*100):+.3f}%)")
 
     def cancelCycle(self):
         log.warning("Cancelling trade cycle")
