@@ -42,11 +42,11 @@ class Strategy(ABC):
     if (not self.trailing_stop_value) or current_price > self.trailing_stop_value:
       self.trailing_stop_value = current_price
 
-    if self.use_stop_loss and (current_price < (100 + self.stoploss_percent_value)*bought_price):
+    if self.use_stop_loss and (current_price < ((100 + self.stoploss_percent_value)/100)*bought_price):
       print("Hit hard stoploss")
       return True
     
-    if self.use_trailing_stop and (current_price < (100 + self.trailing_stop_percent)*self.trailing_stop_value):
+    if self.use_trailing_stop and (current_price < ((100 + self.trailing_stop_percent)/100)*self.trailing_stop_value):
       print("Hit trailing stoploss")
       return True
 

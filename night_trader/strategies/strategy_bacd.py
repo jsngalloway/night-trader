@@ -6,7 +6,7 @@ import numpy as np
 # Profit per 15sec: 0.004029776597783674
 class StrategyBacd(Strategy):
   def __init__(self):
-    Strategy.__init__(self, use_stop_loss=False, use_trailing_stop=False, trailing_stop_percent=-0.5, stoploss_percent_value=-5, use_roi=False)
+    Strategy.__init__(self, use_stop_loss=True, use_trailing_stop=True, trailing_stop_percent=-4, stoploss_percent_value=-4, use_roi=False)
 
   def generateIndicators(self, dataframe):
     print("generating indicators")
