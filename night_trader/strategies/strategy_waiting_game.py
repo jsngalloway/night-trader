@@ -2,7 +2,7 @@ from strategies.strategy import Strategy
 
 import ta
 import numpy as np
-
+import pandas as pd
 # Profit per 15sec: 0.006893096632211284
 
 
@@ -27,10 +27,11 @@ class StrategyWaiter(Strategy):
         }
     
 
-    def generateIndicators(self, dataframe):
+    def generateIndicators(self, dataframe) -> pd.DataFrame:
         # print("generating indicators")
         bacd_params = (12, 26, 9)
         period_multiplier = 30  # 175  # 25 or 111
+        augmented_df = dataframe
 
         exp1 = (
             dataframe[["price"]]
@@ -48,14 +49,15 @@ class StrategyWaiter(Strategy):
             adjust=False,
         ).mean()
 
-        dataframe["macd"] = macd
-        dataframe["signal"] = signal
-        return dataframe
+        augmented_df["macd"] = macd
+        augmented_df["signal"] = signal
+        return augmented_df
 
-    def adviseSell(self, dataframe, i, bought_at_index):
+    def adviseSell(self, dataframe: pd.DataFrame, i, bought_at_index) -> bool:
+      # In this strategy we rely solely on the ROI
       return False
 
-    def adviseBuy(self, dataframe, i):
-      if i == None:
-        i = dataframe.iat[(len(dataframe) - 1)]
-      return (dataframe.loc[i]["macd"] < dataframe.loc[i]["signal"])
+    def adviseBuy(self, dataframe: pd.DataFrame, current_timestamp: pd.Timestamp) -> bool:
+      row = dataframe.loc[current_timestamp]
+
+      return (row["macd"] < row["signal"])

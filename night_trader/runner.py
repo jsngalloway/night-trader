@@ -1,3 +1,4 @@
+from typing import Union
 from predictors.bac_daddy import BacDaddy
 from predictors.mac_daddy import MacDaddy
 
@@ -33,7 +34,7 @@ class NightTrader:
     CRYPTO = "ETH"
     dataManager: LstmDataManager
     simulation_mode: bool
-    trader: Trader
+    trader: Union[Trader, SimTrader]
 
     def __init__(self, simulation=False):
         log.info(
