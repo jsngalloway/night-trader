@@ -4,7 +4,7 @@ import qtpylib_indicators as qtpylib
 import ta
 import numpy as np
 
-# Profit per 15sec: 0.003397950955080792
+# Profit per 15sec: 0.003218595109045257
 
 
 class Strategy001(Strategy):

@@ -4,14 +4,14 @@ import numpy as np
 import ta
 
 
-# Profit per 15sec: 0.001814123697246549
-class StrategyBacd(Strategy):
+# Profit per 15sec: 0.002728082958054552
+class StrategyMacdCci(Strategy):
     def __init__(self):
         Strategy.__init__(
             self,
-            use_stop_loss=True,
+            use_stop_loss=False,
             use_trailing_stop=True,
-            trailing_stop_percent=-.8,
+            trailing_stop_percent=-3,
             stoploss_percent_value=-4,
             use_roi=True,
         )
@@ -50,16 +50,11 @@ class StrategyBacd(Strategy):
         dataframe["macd"] = macd
         dataframe["signal"] = signal
 
+        dataframe["cci"] = ta.trend.cci(dataframe.high, dataframe.low, dataframe.close)
         return dataframe
 
     def adviseSell(self, dataframe, i, bought_at_index):
-        return False
-        # return (dataframe["macd"].iat[i] > dataframe["signal"].iat[i]) and (
-            # dataframe["macd"].iat[i - 1] < dataframe["signal"].iat[i - 1]
-        # )
-          # and (row["ha_close"] < row["ema20"])
+        return (dataframe["macd"].iat[i] < dataframe["signal"].iat[i]) and (dataframe["cci"].iat[i] >= 100.0*3)
 
     def adviseBuy(self, dataframe, i):
-        return (dataframe["macd"].iat[i] < dataframe["signal"].iat[i]) and (
-            dataframe["macd"].iat[i - 1] > dataframe["signal"].iat[i - 1]
-        ) 
+        return (dataframe["macd"].iat[i] > dataframe["signal"].iat[i]) and (dataframe["cci"].iat[i] <= -50.0*3)

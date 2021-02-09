@@ -94,3 +94,5 @@ class Strategy(ABC):
     @abstractmethod
     def generateIndicators(self, dataframe):
         pass
+
+# https://github.com/Haehnchen/crypto-trading-bot

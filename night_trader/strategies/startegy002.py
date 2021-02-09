@@ -3,7 +3,7 @@ from strategy import Strategy
 import ta
 import numpy as np
 
-# Profit per 15sec: 0.0034475758206718725
+# Profit per 15sec: -0.00043279124581832465
 
 
 class Strategy002(Strategy):
