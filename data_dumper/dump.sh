@@ -4,6 +4,8 @@ echo "Pulling from git"
 git pull
 echo "Running Script"
 python3 /home/pi/night-trader/data_dumper/data_dumper.py /home/pi/night-trader/env /home/pi/night-trader/data
+echo "Pulling from git again"
+git pull
 echo "Commiting"
 git add data/*
 DATE=$(date +"%D %H:%M")
