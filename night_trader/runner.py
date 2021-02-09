@@ -1,4 +1,5 @@
 from typing import Union
+
 from predictors.bac_daddy import BacDaddy
 from predictors.mac_daddy import MacDaddy
 
@@ -57,7 +58,7 @@ class NightTrader:
 
             log.info("Authenticating with robinhood...")
             login = r.login(username, password)
-            if not login["access_token"]:
+            if (not login) or (not isinstance(login, dict)) or (not login["access_token"]):
                 log.error("Unable to authenticate, exiting.")
                 r.authentication.logout()
                 exit()
@@ -95,7 +96,7 @@ class NightTrader:
     def updateDataManager(self) -> dict:
         if self.simulation_mode:
             data = self.dataManager.getData(tail=1, subsampling=1)
-            price = data["price"].iloc[-1]
+            price = data['price'].iat[-1]
             time = str(data[["time"]].iloc[-1, 0])
             latest_data = {
                 "mark_price": price,

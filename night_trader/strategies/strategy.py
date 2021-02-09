@@ -61,7 +61,7 @@ class Strategy(ABC):
             log.info(f"Sell signal: Hit hard stoploss of {self.stoploss_percent_value:.2f}% price at ${current_price}")
             return True
 
-        if self.use_trailing_stop and (
+        if self.use_trailing_stop and self.trailing_stop_value and (
             current_price
             < ((100 + self.trailing_stop_percent) / 100) * self.trailing_stop_value
         ):

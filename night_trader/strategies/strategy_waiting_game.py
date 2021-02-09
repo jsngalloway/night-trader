@@ -73,5 +73,4 @@ class StrategyWaiter(Strategy):
       return False
 
     def adviseBuy(self, dataframe: pd.DataFrame, current_timestamp: pd.Timestamp) -> bool:
-      row = dataframe.loc[current_timestamp]
-      return (row["macd"] < row["signal"])
+      return (dataframe.at[current_timestamp, "macd"] < dataframe.at[current_timestamp, "signal"])
