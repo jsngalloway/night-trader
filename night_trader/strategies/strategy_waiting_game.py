@@ -57,5 +57,5 @@ class StrategyWaiter(Strategy):
 
     def adviseBuy(self, dataframe, i):
       if i == None:
-        i = len(dataframe) - 1
+        i = dataframe.iat[(len(dataframe) - 1)]
       return (dataframe.loc[i]["macd"] < dataframe.loc[i]["signal"])
