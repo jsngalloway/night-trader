@@ -1,10 +1,12 @@
 from strategies.strategy import Strategy
-
 import ta
 import numpy as np
+import pandas as pd
+import logging
 
 # Profit per 15sec: 0.006893096632211284
 
+log = logging.getLogger(__name__)
 
 class StrategyWaiter(Strategy):
     def __init__(self):
@@ -18,19 +20,33 @@ class StrategyWaiter(Strategy):
             use_roi=True,
         )
         self.minimal_roi = {
-            # cycles (15sec) : percent return
+            # minutes : percent return
             "120": 1,
             "60": 2,
             "30": 5,
             "15": 8,
             "0": 10,
         }
+
+        log.info("StrategyWaiter Initialized")
+        log.info("---------------------")
+        log.info("Idea: buy at a decent time (BACD) and wait for (diminishing) return on investment")
+        log.info(f"Use Hard stoploss: {self.use_stop_loss}")
+        log.info(f"Hard stoploss percent: {self.stoploss_percent_value}%")
+        log.info(f"Use Trailing stoploss: {self.use_trailing_stop}")
+        log.info(f"Trailing stoploss percent: {self.stoploss_percent_value}%")
+        log.info(f"Use minimal ROI: {self.use_roi}")
+        for k, v in self.minimal_roi:
+          log.info(f"   After {k} min settle for {v}%")
+        log.info("---------------------")
     
 
-    def generateIndicators(self, dataframe):
-        # print("generating indicators")
+    def generateIndicators(self, dataframe) -> pd.DataFrame:
+        log.debug("Generating indicators")
+
         bacd_params = (12, 26, 9)
         period_multiplier = 30  # 175  # 25 or 111
+        augmented_df = dataframe
 
         exp1 = (
             dataframe[["price"]]
@@ -48,14 +64,13 @@ class StrategyWaiter(Strategy):
             adjust=False,
         ).mean()
 
-        dataframe["macd"] = macd
-        dataframe["signal"] = signal
-        return dataframe
+        augmented_df["macd"] = macd
+        augmented_df["signal"] = signal
+        return augmented_df
 
-    def adviseSell(self, dataframe, i, bought_at_index):
+    def adviseSell(self, dataframe: pd.DataFrame, i, bought_at_index) -> bool:
+      # In this strategy we rely solely on the ROI
       return False
 
-    def adviseBuy(self, dataframe, i):
-      if i == None:
-        i = dataframe.index[-1]
-      return (dataframe.loc[i]["macd"] < dataframe.loc[i]["signal"])
+    def adviseBuy(self, dataframe: pd.DataFrame, current_timestamp: pd.Timestamp) -> bool:
+      return (dataframe.at[current_timestamp, "macd"] < dataframe.at[current_timestamp, "signal"])

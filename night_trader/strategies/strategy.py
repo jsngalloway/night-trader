@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Union
 import pandas as pd
 import logging
 
@@ -9,7 +10,7 @@ class Strategy(ABC):
     use_trailing_stop: bool
 
     trailing_stop_percent: float
-    trailing_stop_value: float
+    trailing_stop_value: Union[float, None]
 
     stoploss_percent_value: float
 
@@ -60,15 +61,15 @@ class Strategy(ABC):
             log.info(f"Sell signal: Hit hard stoploss of {self.stoploss_percent_value:.2f}% price at ${current_price}")
             return True
 
-        if self.use_trailing_stop and (
+        if self.use_trailing_stop and self.trailing_stop_value and (
             current_price
             < ((100 + self.trailing_stop_percent) / 100) * self.trailing_stop_value
         ):
             log.info(f"Sell signal: Hit trailing stoploss which was at ${self.trailing_stop_value:.2f} (current price at ${current_price})")
             return True
 
-        dataframe = self.generateIndicators(dataframe)
-        if self.adviseSell(dataframe, current_time, bought_at_time):
+        indicator_dataframe = self.generateIndicators(dataframe)
+        if self.adviseSell(indicator_dataframe, current_time, bought_at_time):
             log.info("Sell signal: Strategy has advised selling")
             return True
 
@@ -83,8 +84,9 @@ class Strategy(ABC):
 
     def shouldBuy(self, dataframe, i):
         self.trailing_stop_value = None
-        dataframe = self.generateIndicators(dataframe)
-        return_value = self.adviseBuy(dataframe, i)
+        indicator_dataframe = self.generateIndicators(dataframe)
+        
+        return_value = self.adviseBuy(indicator_dataframe, i)
         if return_value:
           log.info("Buy signal: Strategy has advised buying")
         return return_value
@@ -92,15 +94,15 @@ class Strategy(ABC):
     # ABSTRACT METHODS:
 
     @abstractmethod
-    def adviseBuy(self, dataframe, i):
+    def adviseBuy(self, dataframe: pd.DataFrame, current_timestamp: pd.Timestamp):
         pass
 
     @abstractmethod
-    def adviseSell(self, dataframe, i, bought_at_index):
+    def adviseSell(self, dataframe: pd.DataFrame, i, bought_at_index):
         pass
 
     @abstractmethod
-    def generateIndicators(self, dataframe):
+    def generateIndicators(self, dataframe) -> pd.DataFrame:
         pass
 
 # https://github.com/Haehnchen/crypto-trading-bot
