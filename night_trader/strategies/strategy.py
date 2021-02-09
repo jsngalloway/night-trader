@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 import pandas as pd
+import logging
+
+log = logging.getLogger(__name__)
 
 class Strategy(ABC):
     use_stop_loss: bool
@@ -36,44 +39,44 @@ class Strategy(ABC):
             "0": 0.25,
         }
 
+        log.info("Initialized Abstract Strategy class")
+
     def getRoiPeriod(self, delta_time):
         time_in_mins = delta_time.total_seconds()/60
         for timestep_limit, roi in self.minimal_roi.items():
             if time_in_mins > int(timestep_limit):
                 return float(roi)
 
-    def shouldSell(self, dataframe, current_time, bought_at_time):
-        current_price = dataframe.loc[current_time]['price']
-        bought_price = dataframe.loc[bought_at_time]['price']
-        delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
+    def shouldSell(self, dataframe, current_price, bought_at_price, current_time, bought_at_time):
+        # delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
 
-        print(current_price, self.trailing_stop_value)
+        # print(current_price, self.trailing_stop_value)
         if (self.trailing_stop_value == None) or current_price > self.trailing_stop_value:
             self.trailing_stop_value = current_price
 
         if self.use_stop_loss and (
-            current_price < ((100 + self.stoploss_percent_value) / 100) * bought_price
+            current_price < ((100 + self.stoploss_percent_value) / 100) * bought_at_price
         ):
-            print("Hit hard stoploss")
+            log.info(f"Sell signal: Hit hard stoploss of {self.stoploss_percent_value:.2f}% price at ${current_price}")
             return True
 
         if self.use_trailing_stop and (
             current_price
             < ((100 + self.trailing_stop_percent) / 100) * self.trailing_stop_value
         ):
-            print("Hit trailing stoploss")
+            log.info(f"Sell signal: Hit trailing stoploss which was at ${self.trailing_stop_value:.2f} (current price at ${current_price})")
             return True
 
         dataframe = self.generateIndicators(dataframe)
         if self.adviseSell(dataframe, current_time, bought_at_time):
-            print("strategy advised sell point")
+            log.info("Sell signal: Strategy has advised selling")
             return True
 
         if self.use_roi:
             min_roi_percent = self.getRoiPeriod(pd.to_datetime(current_time) - pd.to_datetime(bought_at_time))
-            current_roi_percent = (current_price - bought_price) / bought_price
+            current_roi_percent = (current_price - bought_at_price) / bought_at_price
             if current_roi_percent > (min_roi_percent/100):
-                print(f"hit return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent}")
+                log.info(f"Sell signal: Reached return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent} after {pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)}")
                 return True
 
         return False
@@ -81,7 +84,10 @@ class Strategy(ABC):
     def shouldBuy(self, dataframe, i):
         self.trailing_stop_value = None
         dataframe = self.generateIndicators(dataframe)
-        return self.adviseBuy(dataframe, i)
+        return_value = self.adviseBuy(dataframe, i)
+        if return_value:
+          log.info("Buy signal: Strategy has advised buying")
+        return return_value
 
     # ABSTRACT METHODS:
 

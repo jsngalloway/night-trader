@@ -7,7 +7,6 @@ from strategies.strategy import Strategy
 
 log = logging.getLogger(__name__)
 
-
 class StrategyWrapper:
 
     # TODO REMOVE
@@ -30,6 +29,6 @@ class StrategyWrapper:
       data = self.dataManager.getData(tail=5000, subsampling=1)
       return self.strategy.shouldBuy(data, None)
 
-    def sell(self, current_time, bought_at_time):
+    def sell(self, current_price, bought_at_price, current_time, bought_at_time):
       data = self.dataManager.getData(tail=5000, subsampling=1)
-      return self.strategy.shouldSell(data, current_time, bought_at_time)
+      return self.strategy.shouldSell(data, current_price, bought_at_price, current_time, bought_at_time)
