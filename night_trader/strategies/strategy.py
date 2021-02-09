@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import pandas as pd
 
 class Strategy(ABC):
     use_stop_loss: bool
@@ -29,24 +29,26 @@ class Strategy(ABC):
 
         self.use_roi = use_roi
         self.minimal_roi = {
-            # cycles (15sec) : percent return
-            "240": 0.01,
-            "120": 0.1,
-            "60": 0.2,
+            # cycles minutes : percent return
+            "60": 0.01,
+            "30": 0.1,
+            "15": 0.2,
             "0": 0.25,
         }
 
-    def getRoiPeriod(self, i: int):
+    def getRoiPeriod(self, delta_time):
+        time_in_mins = delta_time.total_seconds()/60
         for timestep_limit, roi in self.minimal_roi.items():
-            if i > int(timestep_limit):
+            if time_in_mins > int(timestep_limit):
                 return float(roi)
 
-    def shouldSell(self, dataframe, i, bought_at_index):
-        current_price = dataframe["average"][i]
-        bought_price = dataframe["average"][bought_at_index]
-        timesteps = i - bought_at_index
+    def shouldSell(self, dataframe, current_time, bought_at_time):
+        current_price = dataframe.loc[current_time]['price']
+        bought_price = dataframe.loc[bought_at_time]['price']
+        delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
 
-        if (not self.trailing_stop_value) or current_price > self.trailing_stop_value:
+        print(current_price, self.trailing_stop_value)
+        if (self.trailing_stop_value == None) or current_price > self.trailing_stop_value:
             self.trailing_stop_value = current_price
 
         if self.use_stop_loss and (
@@ -62,23 +64,23 @@ class Strategy(ABC):
             print("Hit trailing stoploss")
             return True
 
-        # dataframe = self.generateIndicators(dataframe)
-        if self.adviseSell(dataframe, i, bought_at_index):
+        dataframe = self.generateIndicators(dataframe)
+        if self.adviseSell(dataframe, current_time, bought_at_time):
             print("strategy advised sell point")
             return True
 
         if self.use_roi:
-            min_roi_percent = self.getRoiPeriod(i)
+            min_roi_percent = self.getRoiPeriod(pd.to_datetime(current_time) - pd.to_datetime(bought_at_time))
             current_roi_percent = (current_price - bought_price) / bought_price
-            if current_roi_percent > min_roi_percent:
-                print("hit return on investment")
+            if current_roi_percent > (min_roi_percent/100):
+                print(f"hit return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent}")
                 return True
 
         return False
 
     def shouldBuy(self, dataframe, i):
         self.trailing_stop_value = None
-        # dataframe = self.generateIndicators(dataframe)
+        dataframe = self.generateIndicators(dataframe)
         return self.adviseBuy(dataframe, i)
 
     # ABSTRACT METHODS:

@@ -1,5 +1,9 @@
 from predictors.bac_daddy import BacDaddy
 from predictors.mac_daddy import MacDaddy
+
+from predictors.strategy_wrapper import StrategyWrapper
+from strategies.strategy_waiting_game import StrategyWaiter
+
 import robin_stocks as r
 import time
 import schedule
@@ -24,7 +28,7 @@ log = logging.getLogger(__name__)
 class NightTrader:
 
     predictor = None
-    bought = (False, 0.0)
+    bought = (False, 0.0, None)
     sumwin = 0
     CRYPTO = "ETH"
     dataManager: LstmDataManager
@@ -62,12 +66,14 @@ class NightTrader:
 
         if not self.simulation_mode:
             self.dataManager.updateBulk()
-
-        self.trader = Trader(self.CRYPTO, 0.05)
+            self.trader = Trader(self.CRYPTO, 0.05)
+        else:
+            self.trader = SimTrader(self.CRYPTO, 0.05)
 
         # self.predictor = Lstm(self.dataManager, 3)
-        self.predictor = BacDaddy(self.dataManager)
+        # self.predictor = BacDaddy(self.dataManager)
         # self.predictor = MacDaddy(self.dataManager)
+        self.predictor = StrategyWrapper(self.dataManager, StrategyWaiter())
 
     def logout(self):
         # log out of robinhood at the end of the session
@@ -108,23 +114,15 @@ class NightTrader:
         sellable_price = float(latest_data["bid_price"])
         current_time = latest_data["time"]
 
-        action = self.predictor.predict(current_price)
+        # action = self.predictor.predict(current_price)
 
-        if action == "buy":
-            if not self.bought[0]:
-                self.trader.buy(buyable_price)
-                self.bought = (True, buyable_price)
-        elif action == "sell":
-            if self.bought[0]:
-                # we have bought and now we should sell
-                self.trader.sell(sellable_price)
-                # sell_success = True
-                # sell_price = sellable_price
-                # if sell_success:
-                # profit = sell_price - self.bought[1]
-                # self.sumwin = self.sumwin + sell_price - self.bought[1]
-                # log.info(f"BAC_DADDY: {[current_time]} Bought at: {self.bought[1]:.3f} Selling at {sell_price:.3f} for Profit: {profit:.3f} TOTAL: {self.sumwin:.3f}")
-                self.bought = (False, 0)
+        if (not self.bought[0]) and self.predictor.buy():
+            self.trader.buy(buyable_price)
+            self.bought = (True, buyable_price, current_time)
+
+        elif self.bought[0] and self.predictor.sell(current_time, self.bought[2]):
+            self.trader.sell(sellable_price)
+            self.bought = (False, 0, None)
 
         if (
             (not self.bought[0])
