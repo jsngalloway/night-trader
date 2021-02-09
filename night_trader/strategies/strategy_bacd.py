@@ -1,9 +1,10 @@
 from strategy import Strategy
 
 import numpy as np
+import ta
 
 
-# Profit per 15sec: 0.004029776597783674
+# Profit per 15sec: 0.0014286128547804878
 class StrategyBacd(Strategy):
     def __init__(self):
         Strategy.__init__(
@@ -17,10 +18,10 @@ class StrategyBacd(Strategy):
 
         self.minimal_roi = {
             # cycles (15sec) : percent return
-            "240": 0.05,
+            "240": 0.02,
             "120": 0.1,
-            "60": 0.2,
-            "0": 0.3,
+            "60": 0.15,
+            "0": 0.2,
         }
 
     def generateIndicators(self, dataframe):
@@ -53,9 +54,10 @@ class StrategyBacd(Strategy):
 
     def adviseSell(self, dataframe, i, bought_at_index):
         return False
-        return (dataframe["macd"].iat[i] > dataframe["signal"].iat[i]) and (
-            dataframe["macd"].iat[i - 1] < dataframe["signal"].iat[i - 1]
-        )
+        # return (dataframe["macd"].iat[i] > dataframe["signal"].iat[i]) and (
+            # dataframe["macd"].iat[i - 1] < dataframe["signal"].iat[i - 1]
+        # )
+          # and (row["ha_close"] < row["ema20"])
 
     def adviseBuy(self, dataframe, i):
         return (dataframe["macd"].iat[i] < dataframe["signal"].iat[i]) and (
