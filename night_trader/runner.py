@@ -8,7 +8,6 @@ from strategies.strategy_waiting_game import StrategyWaiter
 
 import robin_stocks as r
 import time
-import schedule
 from predictors.lstm_predictor import Lstm
 from trader.trader import Trader
 from sim_trader import SimTrader

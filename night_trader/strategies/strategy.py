@@ -83,12 +83,12 @@ class Strategy(ABC):
             min_roi_percent = self.getRoiPeriod(pd.to_datetime(current_time) - pd.to_datetime(bought_at_time))
             current_roi_percent = (current_price - bought_at_price) / bought_at_price
             delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
-            roi_str = f"ROI: {current_roi_percent*100:.2f}% Minimum ROI: {min_roi_percent:.1f}% Time elapsed: {delta_time}"
+            roi_str = f" Current ROI: {current_roi_percent*100:+.2f}% Minimum ROI: {min_roi_percent:.1f}% Time elapsed: {delta_time}"
             if current_roi_percent > (min_roi_percent/100):
-                log.info(f" Sell signal: Reached return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent} after {delta_time}")
+                log.info(f"Sell signal: Reached return on investment {current_roi_percent*100:.3f}% needed from {min_roi_percent} after {delta_time}")
                 return True
 
-        print(f"Current price ${current_price:.2f}{roi_str}{trailing_stop_str}{stoploss_str}", end="\r")
+        print(f"Current price: ${current_price:.2f}{roi_str}{trailing_stop_str}{stoploss_str}", end="\r")
 
         return False
 
