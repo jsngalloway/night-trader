@@ -88,7 +88,7 @@ class Strategy(ABC):
                 log.info(f" Sell signal: Reached return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent} after {delta_time}")
                 return True
 
-        print(f"Current price ${current_price:.2f}{roi_str}{trailing_stop_str}{stoploss_str}")
+        print(f"Current price ${current_price:.2f}{roi_str}{trailing_stop_str}{stoploss_str}", end="\r")
 
         return False
 
