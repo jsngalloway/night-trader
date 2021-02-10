@@ -64,8 +64,12 @@ class StrategyWaiter(Strategy):
             adjust=False,
         ).mean()
 
+        # I'm pretty sure this is a safe operation, pandas just doesn't like it
+        pd.set_option('mode.chained_assignment', None)
         augmented_df["macd"] = macd
         augmented_df["signal"] = signal
+        pd.set_option('mode.chained_assignment', 'raise')
+
         return augmented_df
 
     def adviseSell(self, dataframe: pd.DataFrame, i, bought_at_index) -> bool:
