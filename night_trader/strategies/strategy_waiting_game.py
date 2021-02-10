@@ -36,7 +36,7 @@ class StrategyWaiter(Strategy):
         log.info(f"Use Trailing stoploss: {self.use_trailing_stop}")
         log.info(f"Trailing stoploss percent: {self.stoploss_percent_value}%")
         log.info(f"Use minimal ROI: {self.use_roi}")
-        for k, v in self.minimal_roi:
+        for k, v in self.minimal_roi.items():
           log.info(f"   After {k} min settle for {v}%")
         log.info("---------------------")
     

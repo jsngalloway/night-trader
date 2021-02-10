@@ -50,16 +50,22 @@ class Strategy(ABC):
 
     def shouldSell(self, dataframe, current_price, bought_at_price, current_time, bought_at_time):
         # delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
+        trailing_stop_str = ""
+        stoploss_str = ""
+        roi_str = ""
 
         # print(current_price, self.trailing_stop_value)
-        if (self.trailing_stop_value == None) or current_price > self.trailing_stop_value:
-            self.trailing_stop_value = current_price
+        if self.use_trailing_stop:
+            trailing_stop_str = f" Trailing stop at:  {self.trailing_stop_value} (${self.trailing_stop_value - current_price:+.2f})"
+            if (self.trailing_stop_value == None) or current_price > self.trailing_stop_value:
+                self.trailing_stop_value = current_price
 
-        if self.use_stop_loss and (
-            current_price < ((100 + self.stoploss_percent_value) / 100) * bought_at_price
-        ):
-            log.info(f"Sell signal: Hit hard stoploss of {self.stoploss_percent_value:.2f}% price at ${current_price}")
-            return True
+        if self.use_stop_loss:
+            hard_stop_price = ((100 + self.stoploss_percent_value) / 100) * bought_at_price
+            stoploss_str = f" Hard stop at: {hard_stop_price} (${hard_stop_price - current_price:+.2f})"
+            if(current_price < hard_stop_price):
+                log.info(f"Sell signal: Hit hard stoploss of {self.stoploss_percent_value:.2f}% price at ${current_price}")
+                return True
 
         if self.use_trailing_stop and self.trailing_stop_value and (
             current_price
@@ -76,9 +82,13 @@ class Strategy(ABC):
         if self.use_roi:
             min_roi_percent = self.getRoiPeriod(pd.to_datetime(current_time) - pd.to_datetime(bought_at_time))
             current_roi_percent = (current_price - bought_at_price) / bought_at_price
+            delta_time = pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)
+            roi_str = f"ROI: {current_roi_percent*100:.2f}% Minimum ROI: {min_roi_percent:.1f}% Time elapsed: {delta_time}"
             if current_roi_percent > (min_roi_percent/100):
-                log.info(f"Sell signal: Reached return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent} after {pd.to_datetime(current_time) - pd.to_datetime(bought_at_time)}")
+                log.info(f" Sell signal: Reached return on investment {current_roi_percent*100:.2f}% needed from {min_roi_percent} after {delta_time}")
                 return True
+
+        print(f"Current price ${current_price:.2f}{roi_str}{trailing_stop_str}{stoploss_str}")
 
         return False
 
