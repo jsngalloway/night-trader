@@ -74,8 +74,8 @@ class Strategy(ABC):
             log.info(f"Sell signal: Hit trailing stoploss which was at ${self.trailing_stop_value:.2f} (current price at ${current_price})")
             return True
 
-        indicator_dataframe = self.generateIndicators(dataframe)
-        if self.adviseSell(indicator_dataframe, current_time, bought_at_time):
+        # dataframe = self.generateIndicators(dataframe)
+        if self.adviseSell(dataframe, current_time, bought_at_time):
             log.info("Sell signal: Strategy has advised selling")
             return True
 
@@ -94,9 +94,9 @@ class Strategy(ABC):
 
     def shouldBuy(self, dataframe, i):
         self.trailing_stop_value = None
-        indicator_dataframe = self.generateIndicators(dataframe)
+        # dataframe = self.generateIndicators(dataframe)
         
-        return_value = self.adviseBuy(indicator_dataframe, i)
+        return_value = self.adviseBuy(dataframe, i)
         if return_value:
           log.info("Buy signal: Strategy has advised buying")
         return return_value

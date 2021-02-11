@@ -1,12 +1,13 @@
 from strategies.strategy import Strategy
 import pandas as pd
 import logging
+import ta
 
-# Profit per 15sec: 0.006893096632211284
+# Profit per 15sec: 0.
 
 log = logging.getLogger(__name__)
 
-class StrategyWaiter(Strategy):
+class StrategyWaiterRSI(Strategy):
     def __init__(self):
 
         Strategy.__init__(
@@ -20,10 +21,10 @@ class StrategyWaiter(Strategy):
         self.minimal_roi = {
             # minutes : percent return
             "120": 1,
-            "60": 2,
-            "30": 5,
-            "15": 8,
-            "0": 10,
+            "60": 1.25,
+            "30": 1.8,
+            "15": 3,
+            "0": 5,
         }
 
         log.info("StrategyWaiter Initialized")
@@ -62,6 +63,8 @@ class StrategyWaiter(Strategy):
             adjust=False,
         ).mean()
 
+        augmented_df['rsi'] = ta.momentum.RSIIndicator(dataframe.price, window=28).rsi()
+
         # I'm pretty sure this is a safe operation, pandas just doesn't like it
         pd.set_option('mode.chained_assignment', None)
         augmented_df["macd"] = macd
@@ -75,4 +78,4 @@ class StrategyWaiter(Strategy):
       return False
 
     def adviseBuy(self, dataframe: pd.DataFrame, current_timestamp: pd.Timestamp) -> bool:
-      return (dataframe.at[current_timestamp, "macd"] < dataframe.at[current_timestamp, "signal"])
+      return (dataframe.at[current_timestamp, "rsi"] < 30) and (dataframe.at[current_timestamp, "macd"] > dataframe.at[current_timestamp, "signal"])
