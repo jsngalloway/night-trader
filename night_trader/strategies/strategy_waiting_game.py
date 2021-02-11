@@ -1,4 +1,4 @@
-from night_trader.strategies.strategy import Strategy
+from strategies.strategy import Strategy
 import pandas as pd
 import logging
 

@@ -118,11 +118,13 @@ class NightTrader:
         # action = self.predictor.predict(current_price)
 
         if (not self.bought[0]) and self.predictor.buy():
-            self.trader.buy(buyable_price)
+            # self.trader.buy(buyable_price)
+            self.trader.buy(current_price)
             self.bought = (True, buyable_price, current_time)
 
         elif self.bought[0] and self.predictor.sell(current_price, self.bought[1], current_time, self.bought[2]):
-            self.trader.sell(sellable_price)
+            # self.trader.sell(sellable_price)
+            self.trader.sell(current_price)
             self.bought = (False, 0, None)
 
         if (
